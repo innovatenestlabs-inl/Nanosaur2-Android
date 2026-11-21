@@ -47,12 +47,20 @@ jobs:
           unzip -l android/app/build/outputs/apk/debug/app-debug.apk | grep -F 'assets/Data/System/gamecontrollerdb.txt'
           unzip -l android/app/build/outputs/apk/debug/app-debug.apk | grep -F 'assets/nanosaur-data-files.txt'
 
-      # The original desktop OpenGL renderer cannot run on GLES yet.
-      # Keep the verified Android preview build green while the separate
-      # compile-only audit reports unsupported game engine dependencies.
-      - name: Compile audit of original game engine (experimental)
+      # Do not treat an up-to-date Gradle task as proof that native game
+      # source code was compiled. Invoke the CMake object target explicitly.
+      - name: Compile original game engine objects (experimental)
         continue-on-error: true
-        run: gradle -p android :app:assembleDebug -PfullGameAssets=true -PengineProbe=true --stacktrace
+        run: |
+          gradle -p android :app:configureCMakeDebug -PfullGameAssets=true -PengineProbe=true --stacktrace
+          build_file="$(find android/app/.cxx/Debug -type f -name build.ninja -print -quit)"
+          if [ -z "$build_file" ]; then
+            echo "Couldn't find Android CMake/Ninja build directory"
+            exit 1
+          fi
+          echo "Compiling original game engine in $(dirname "$build_file")"
+          cmake --build "$(dirname "$build_file")" --target nanosaur-engine-probe --parallel 2
+
 
       - name: Upload smoke-test APK
         uses: actions/upload-artifact@v4

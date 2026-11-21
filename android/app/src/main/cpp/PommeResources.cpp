@@ -5,6 +5,9 @@
 #include <SDL3/SDL.h>
 #include <filesystem>
 #include <fstream>
+#include <iterator>
+#include <sstream>
+#include <stdexcept>
 #include <string>
 #include <string_view>
 #include <system_error>

@@ -8,6 +8,7 @@
 extern void NanosaurAndroidTouchEvent(const SDL_TouchFingerEvent* finger, bool released);
 extern float NanosaurAndroidTouchNeedAnalog(int need);
 extern void NanosaurAndroidTouchReset(void);
+extern void NanosaurAndroidTouchTick(void);
 #endif
 
 /***************/
@@ -382,6 +383,9 @@ void DoSDLMaintenance(void)
 	// Refresh the state of each mouse button
 	UpdateMouseButtonStates(mouseWheelDeltaX, mouseWheelDeltaY);
 
+#if defined(__ANDROID__) && defined(NANOSAUR_ANDROID_TOUCH_CONTROLS)
+    NanosaurAndroidTouchTick();
+#endif
 	// Refresh the state of each input need
 	UpdateInputNeeds();
 

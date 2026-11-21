@@ -17,6 +17,7 @@ typedef struct
     SDL_FingerID id;
     float x;
     float y;
+    int capturedAction; // -1 means no action is held
 } AndroidTouch;
 
 static AndroidTouch gTouches[MAX_ANDROID_TOUCH_FINGERS];
@@ -47,6 +48,7 @@ static float gSmoothYaw = 0.0f, gSmoothPitch = 0.0f;
 static Uint64 gLastSteerTick = 0;
 
 void NanosaurAndroidTouchReset(void);
+static int AndroidFindActionAt(float x, float y);
 
 void NanosaurAndroidTouchSetGameplayActive(bool active)
 {
@@ -155,6 +157,9 @@ void NanosaurAndroidTouchEvent(const SDL_TouchFingerEvent* finger, bool released
         gLastSteerTick = SDL_GetTicks();
     }
 
+    // Latch action on finger-down: sliding slightly must not cancel FIRE/JET.
+    if (!released && !gTouches[slot].active)
+        gTouches[slot].capturedAction = AndroidFindActionAt(finger->x, finger->y);
     gTouches[slot].active = !released;
     gTouches[slot].id = finger->fingerID;
     gTouches[slot].x = finger->x;
@@ -167,12 +172,19 @@ void NanosaurAndroidTouchEvent(const SDL_TouchFingerEvent* finger, bool released
         gSmoothPitch = 0.0f;
         gLastSteerTick = 0;
     }
+    if (released)
+        gTouches[slot].capturedAction = -1;
 }
 
 void NanosaurAndroidTouchTick(void)
 {
-    if (!gAndroidGameplayActive || gGamePaused)
+    if (!gAndroidGameplayActive)
         return;
+    if (gGamePaused)
+    {
+        NanosaurAndroidTouchReset();
+        return;
+    }
 
     float targetYaw = 0.0f;
     float targetPitch = 0.0f;
@@ -236,6 +248,21 @@ static const struct AndroidDpadButton {
     {.92f, .67f, .075f, .090f, kNeed_YawRight, "RIGHT"}
 };
 
+static int AndroidFindActionAt(float x, float y)
+{
+    for (size_t j = 0; j < SDL_arraysize(gAndroidActions); ++j)
+    {
+        const struct AndroidActionButton* button = &gAndroidActions[j];
+        if (button->expandedOnly && !gAndroidActionsExpanded)
+            continue;
+        const float dx = (x - button->x) / button->radiusX;
+        const float dy = (y - button->y) / button->radiusY;
+        if (dx*dx + dy*dy <= 1.0f)
+            return button->need;
+    }
+    return -1;
+}
+
 static float AndroidDpadNeedAnalog(int need)
 {
     for (int i = 0; i < MAX_ANDROID_TOUCH_FINGERS; ++i)
@@ -289,19 +316,11 @@ float NanosaurAndroidTouchNeedAnalog(int need)
 
     for (int i = 0; i < MAX_ANDROID_TOUCH_FINGERS; ++i)
     {
-        if (!gTouches[i].active || (gSteeringFingerActive && gTouches[i].id == gSteeringFinger))
+        if (!gTouches[i].active ||
+            (gSteeringFingerActive && gTouches[i].id == gSteeringFinger))
             continue;
-
-        for (size_t j = 0; j < SDL_arraysize(gAndroidActions); ++j)
-        {
-            const struct AndroidActionButton* button = &gAndroidActions[j];
-            if (button->need != need || (button->expandedOnly && !gAndroidActionsExpanded))
-                continue;
-            const float dx = (gTouches[i].x - button->x) / button->radiusX;
-            const float dy = (gTouches[i].y - button->y) / button->radiusY;
-            if (dx * dx + dy * dy <= 1.0f)
-                return 1.0f;
-        }
+        if (gTouches[i].capturedAction == need)
+            return 1.0f;
     }
     return 0.0f;
 }
@@ -309,6 +328,8 @@ float NanosaurAndroidTouchNeedAnalog(int need)
 void NanosaurAndroidTouchReset(void)
 {
     SDL_memset(gTouches, 0, sizeof(gTouches));
+    for (int i = 0; i < MAX_ANDROID_TOUCH_FINGERS; ++i)
+        gTouches[i].capturedAction = -1;
     gAndroidActionsExpanded = false;
     gToggleFingerHeld = false;
     gToggleFingerID = 0;
@@ -453,7 +474,7 @@ void NanosaurAndroidDrawTouchHUD(void)
         if (button->expandedOnly && !gAndroidActionsExpanded)
             continue;
         const float pressed = NanosaurAndroidTouchNeedAnalog(button->need);
-        AndroidHudCircle(button->x, button->y, button->radiusY * .47f,
+        AndroidHudCircle(button->x, button->y, button->radiusY * .64f,
                          pressed > 0 ? .10f : .03f,
                          pressed > 0 ? .75f : .20f,
                          pressed > 0 ? .30f : .28f,

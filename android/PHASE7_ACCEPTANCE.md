@@ -174,3 +174,12 @@ progression; a log line alone does not certify a complete level.
 ## D-pad visual correction (2026-11-21)
 - Direction labels are now vector-drawn arrow icons instead of textual UP/DN/LEFT/RIGHT. Rendering uses the existing OpenGL/GL4ES HUD pass, with screen aspect correction. Touch hit boxes and gameplay direction mapping are unchanged.
 - Requires local native compile and on-device visual/gameplay verification before production signoff.
+
+## Mobile gameplay regression verification (2026-11-21)
+- [ ] FIRE/JET respond to first press and stay active while fingers drift beyond button centers
+- [ ] FIRE and JET work with simultaneous steering; both release immediately on finger-up
+- [ ] Pausing/returning from background does not leave stuck actions
+- [ ] MORE/LESS does not steal button presses
+- [ ] A new Android Adventure starts with 7 spare lives, shield/fuel preserved
+- [ ] Android Adventure receives 75% of normal damage; saved games retain their own life counts
+- [ ] Egg delivery, exit wormhole, all three levels, audio and saves still work

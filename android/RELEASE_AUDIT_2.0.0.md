@@ -220,3 +220,7 @@ production-ready confirmation even if debug tests pass.
 - In D-pad mode, multiple fingers may press distinct arrows simultaneously for diagonals. Finger movement is evaluated against the button hit targets each frame. Joystick capture is disabled while D-pad is active. Mode-switch fingers are consumed to prevent stuck inputs.
 - Left side is now minimal by default: **FIRE** and **JET** only; **MORE** reveals DROP, PAUSE, NEXT, VIEW. Expand/collapse state clears on gameplay reset.
 - This is an input/UI source change only. Android build, visual legibility, device safe-area layout, multi-touch interactions, and actual player climb/dive still need real-device verification. It does not change the original desktop input and does not convey rights to distribute the game.
+
+## 2026-11-21 — Android input regression and beginner tuning
+
+Two external testers reported nonresponsive fighting buttons and excessive difficulty. The action code used per-frame finger-position hit tests, causing hold actions to drop when a thumb shifted. Action keys now latch on initial touch until release, and clear on pause. Android Adventure starts new games with seven spare lives and takes 75% damage, while original desktop and VS modes retain their behavior. **This commit has not undergone a native Android build or hardware test. Stop distributing APKs until the on-device acceptance checklist passes.**

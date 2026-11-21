@@ -66,7 +66,7 @@ short	i, w;
 				gPlayerInfo[i].numFreeLives		= 5;
 			else
 				#ifdef __ANDROID__
-            gPlayerInfo[i].numFreeLives      = 5; // Beginner-friendly Android adventure
+            gPlayerInfo[i].numFreeLives = 7; // Beginner-friendly Android Adventure
 #else
             gPlayerInfo[i].numFreeLives      = 3;
 #endif
@@ -260,6 +260,12 @@ Boolean	killed = false;
 	if (gPlayerInfo[playerNum].health < 0.0f)				// see if already dead
 		return(true);
 
+#ifdef __ANDROID__
+    // Touchscreen Adventure gives players extra time to react to hazards.
+    // Keep multiplayer and desktop damage unchanged.
+    if (gVSMode == VS_MODE_NONE)
+        damage *= 0.75f;
+#endif
 	gPlayerInfo[playerNum].health -= damage;
 
 		/* SEE IF KILLED */

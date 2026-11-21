@@ -6,6 +6,8 @@
 #include <GLES3/gl3.h>
 #include <cstddef>
 
+extern bool InitializePommeResources();
+
 #define STB_IMAGE_IMPLEMENTATION
 #define STBI_ONLY_JPEG
 #define STBI_NO_STDIO
@@ -153,6 +155,12 @@ int main(int, char**)
         SDL_Quit();
         return 1;
     }
+
+    // Extract the original Data tree when fullGameAssets is enabled, and
+    // verify Pomme can resolve the resulting Macintosh FSSpec paths.
+    // The original gameplay engine is not invoked yet.
+    const bool pommeReady = InitializePommeResources();
+    SDL_Log("Nanosaur Android Pomme filesystem probe: %s", pommeReady ? "READY" : "PREVIEW ONLY / FAILED");
 
     GLuint program = MakeProgram();
     int imageWidth = 0, imageHeight = 0;

@@ -26,6 +26,7 @@ get_filename_component(POMME_SOURCE_DIR "${GAME_ROOT}/extern/Pomme" ABSOLUTE)
 if(NOT EXISTS "${POMME_SOURCE_DIR}/CMakeLists.txt")
     message(FATAL_ERROR "Pomme submodule missing. Run git submodule update --init --recursive")
 endif()
+add_compile_definitions(POMME_CASE_SENSITIVE_FSSPEC=1)
 set(POMME_NO_GRAPHICS TRUE)
 set(POMME_NO_INPUT TRUE)
 set(POMME_NO_QD3D TRUE)
@@ -35,7 +36,7 @@ set(POMME_NO_SOUND_MIXER TRUE)
 set(POMME_NO_SOUND_FORMATS TRUE)
 add_subdirectory("${POMME_SOURCE_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/Pomme" EXCLUDE_FROM_ALL)
 
-add_library(main SHARED smoke_main.cpp)
+add_library(main SHARED smoke_main.cpp PommeResources.cpp)
 # Compile/link Pomme now so missing Android platform facilities fail in CI.
 target_link_libraries(main PRIVATE Pomme)
 

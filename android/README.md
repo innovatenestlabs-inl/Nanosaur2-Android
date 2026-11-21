@@ -291,3 +291,51 @@ to steering/fire before Phase 5 can be considered complete.
 
 All GitHub Actions workflows are removed. Keep `master` unchanged and
 do not create the production `main` branch until Phase 7 is tested.
+
+## Phase 6: Visible Android touchscreen controls (experimental)
+
+After the user verified that Adventure Level 1 renders in full color and
+responds to the existing touch zones, the gameplay build gained a visible
+translucent overlay drawn by GL4ES. It uses the original game's font and
+retains the previously tested multi-finger input logic.
+
+- Left lower steering pad: drag around its center to pitch and yaw.
+- FIRE and JET: press/hold on the lower-right side.
+- DROP and CAM: center-right actions.
+- NEXT and PAUSE: upper-right actions.
+- Button indicators brighten when their touch zone is pressed.
+- Finger state clears if the app loses focus or enters the background.
+
+The HUD is rendered **only** in the Android quick-play level callback; the
+original desktop renderer and input mapping remain unchanged. The touch
+layout is temporary and still requires safe-area, tablet/phone, pause/resume,
+and real-device verification. In particular, the HUD rendering must not
+leave native GL client-array state altered after drawing.
+
+### Local test
+
+```powershell
+cd E:\Projects\Game\Nanosaur2-Android
+git checkout android-port
+git pull origin android-port
+cd android
+.\gradlew.bat :app:assembleDebug -PfullGameAssets=true -PgameplayProbe=true
+if ($LASTEXITCODE -ne 0) { throw 'Build failed — do not install the old APK' }
+adb install -r .\app\build\outputs\apk\debug\app-debug.apk
+if ($LASTEXITCODE -ne 0) { throw 'Install failed' }
+adb logcat -c
+adb shell am force-stop com.innovatenestlabs.nanosaur2
+adb shell am start -n com.innovatenestlabs.nanosaur2/.NanosaurActivity
+```
+
+Verify full-color terrain/objects and translucent control circles/labels.
+Test steering and simultaneous FIRE + JET, then NEXT, CAM, DROP and PAUSE.
+Background the app and resume, checking there are no stuck buttons or
+graphics errors. Capture logs with:
+
+```powershell
+adb logcat -d -s SDL:V SDL/APP:V AndroidRuntime:E libc:E
+```
+
+No GitHub Actions validation is performed. Production `main` is reserved
+until Phase 7; `master` remains the unchanged desktop fork.

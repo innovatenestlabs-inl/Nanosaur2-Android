@@ -139,7 +139,7 @@ bool InitializePommeResources()
         // Pomme's Macintosh FSSpec emulation needs real filesystem paths.
         // Initialize only the configured filesystem core (no sound/graphics).
         Pomme::Init();
-        const auto spec = Pomme::Files::HostPathToFSSpec(dataRoot / "System");
+        const auto spec = Pomme::Files::HostPathToFSSpec(::fs::path((dataRoot / "System").string()));
         FSSpec gamepadDatabase = {};
         const OSErr result = FSMakeFSSpec(spec.vRefNum, spec.parID,
                                          ":System:gamecontrollerdb.txt", &gamepadDatabase);

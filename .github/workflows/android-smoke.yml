@@ -26,8 +26,9 @@ jobs:
       - name: Install Android SDK packages
         run: |
           echo "Using SDK at: $ANDROID_HOME"
-          command -v sdkmanager
-          sdkmanager --install "platforms;android-35" "build-tools;35.0.0" "cmake;3.22.1" "ndk;27.2.12479018"
+          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | head -n 1)"
+          if [ -z "$SDKMANAGER" ]; then echo "sdkmanager not found in Android SDK"; exit 1; fi
+          "$SDKMANAGER" --install "platforms;android-35" "build-tools;35.0.0" "cmake;3.22.1" "ndk;27.2.12479018"
 
       - name: Clone pinned SDL3
         run: |
@@ -42,6 +43,10 @@ jobs:
       - name: Assemble debug APK
         working-directory: android
         run: bash ./gradlew :app:assembleDebug --stacktrace
+
+      - name: Verify original game asset packaged in APK
+        run: |
+          unzip -l android/app/build/outputs/apk/debug/app-debug.apk | grep -F 'assets/Sprites/maps/level1.jpg'
 
       - name: Upload smoke-test APK
         uses: actions/upload-artifact@v4

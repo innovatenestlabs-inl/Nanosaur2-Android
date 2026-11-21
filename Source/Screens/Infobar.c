@@ -1360,6 +1360,29 @@ static void Infobar_DrawPlayerLabels(void)
 
 static void Infobar_DrawMissionStatus(void)
 {
+#ifdef __ANDROID__
+    // Adventure level progress guidance: always show the current biome and
+    // the same egg totals used by the original portal-unlock logic.
+    // The existing minimap in Infobar_DrawMap remains visible.
+    if (gVSMode == VS_MODE_NONE && gLevelNum >= LEVEL_NUM_ADVENTURE1
+        && gLevelNum <= LEVEL_NUM_ADVENTURE3)
+    {
+        static const char* kBiomes[] = {"FOREST", "DESERT", "SWAMP"};
+        int saved = 0, required = 0;
+        for (int i = 0; i < NUM_EGG_TYPES; ++i)
+        {
+            saved += gNumEggsSaved[i];
+            required += gNumEggsToSave[i];
+        }
+
+        char progress[128];
+        SDL_snprintf(progress, sizeof(progress),
+                     "LEVEL %d/3 - %s   EGGS %d/%d",
+                     gLevelNum + 1, kBiomes[gLevelNum], saved, required);
+        Atlas_DrawString(ATLAS_GROUP_FONT1, progress, AnchorCenterX(0),
+                         AnchorTop(30), .35f, kTextMeshSmallCaps);
+    }
+#endif
 	static float flux = 0;
 
 	if (gGamePaused)

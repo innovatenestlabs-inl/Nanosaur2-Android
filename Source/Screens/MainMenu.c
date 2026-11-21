@@ -45,9 +45,24 @@ static MenuItem gMainMenuTree[] =
 
 	{ .id='play' },
 	{kMIPick, STR_ADVENTURE,	.next='EXIT', .id='adve', .callback=CheckForLevelCheat},
+#ifdef __ANDROID__
+    {kMIPick, .rawText="LEVEL GUIDE", .next='guid'},
+#endif
 	{kMIPick, STR_NANO_VS_NANO,	.next='bttl' },
 	{kMIPick, STR_SAVED_GAMES,	.next='load'},
 	{kMIPick, STR_BACK_SYMBOL,	.next='BACK' },
+
+#ifdef __ANDROID__
+    // Informational level list, NOT a cheat menu. Play Adventure to progress
+    // sequentially, or load completed progress from existing save slots.
+    { .id='guid' },
+    {kMILabel, .rawText="ADVENTURE: 3 LEVELS"},
+    {kMILabel, .rawText="1 / 3  FOREST"},
+    {kMILabel, .rawText="2 / 3  DESERT"},
+    {kMILabel, .rawText="3 / 3  SWAMP"},
+    {kMILabel, .rawText="COMPLETE EGGS, ENTER EXIT WORMHOLE"},
+    {kMIPick, STR_BACK_SYMBOL, .next='BACK'},
+#endif
 
 	{ .id='info' },
 	{kMIPick, STR_STORY,			.id='intr',	.next='EXIT' },

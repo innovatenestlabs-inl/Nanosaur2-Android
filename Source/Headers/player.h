@@ -12,7 +12,13 @@
 
 #define	PLAYER_COLLISION_CTYPE	(CTYPE_TRIGGER|CTYPE_HURTME|CTYPE_PLAYERONLY)
 
+// Keep original desktop flight speed; slightly slower normal flight on
+// Android makes small-screen joystick adjustments less punishing.
+#ifdef __ANDROID__
+#define PLAYER_NORMAL_MAX_SPEED     850.0f
+#else
 #define	PLAYER_NORMAL_MAX_SPEED		900.0f
+#endif
 #define	PLAYER_JETPACK_MAX_SPEED	2000.0f
 
 #define	MAX_ALTITUDE_DIFF			1400.0f				// this is as high as we can fly above terrain before we hit the ceiling

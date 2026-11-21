@@ -541,6 +541,9 @@ OGLSetupInputType	viewDef;
 static void PlayLevel(void)
 {
 float	fps;
+#ifdef __ANDROID__
+    bool loggedFirstRenderedFrame = false;
+#endif
 
 
 			/* PREP STUFF */
@@ -589,6 +592,13 @@ float	fps;
 		MoveEverything();
 		DoPlayerTerrainUpdate();
 		OGL_DrawScene(DrawLevelCallback);
+#ifdef __ANDROID__
+        if (!loggedFirstRenderedFrame)
+        {
+            SDL_Log("Nanosaur Android level: first 3D frame submitted");
+            loggedFirstRenderedFrame = true;
+        }
+#endif
 
 
 			/*************************/

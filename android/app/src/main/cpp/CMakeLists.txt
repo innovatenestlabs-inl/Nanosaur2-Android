@@ -88,6 +88,18 @@ else()
 endif()
 # Compile/link Pomme now so missing Android platform facilities fail in CI.
 target_link_libraries(main PRIVATE Pomme)
+# Google Play 16 KB memory-page compatibility for NDK r27.  Both the game
+# and its SDL3 shared library must be ELF-aligned; other shared objects (such
+# as libc++_shared.so) must also be checked on an actual built APK.
+if(ANDROID)
+    foreach(native_target main SDL3-shared)
+        if(TARGET ${native_target})
+            target_link_options(${native_target} PRIVATE
+                "-Wl,-z,max-page-size=16384"
+                "-Wl,-z,common-page-size=16384")
+        endif()
+    endforeach()
+endif()
 
 target_include_directories(main PRIVATE "${GAME_ROOT}/Source/Headers")
 find_library(GLES3_LIB GLESv3 REQUIRED)

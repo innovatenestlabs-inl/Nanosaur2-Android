@@ -78,3 +78,45 @@ Nanosaur II © Pangea Software; modern port © Iliyas Jorio.
 Upstream: https://github.com/jorio/Nanosaur2
 Existing CC BY-NC-SA 4.0 licensing and attribution are preserved.
 This experimental Android port is for private, noncommercial evaluation.
+
+## Experimental complete resource packaging
+
+The current APK includes one unmodified original level-map image for the
+verified GLES3 preview. To package the **entire** original `Data/` tree
+for later engine integration, use:
+
+```powershell
+cd E:\Projects\Game\Nanosaur2-Android\android
+.\gradlew.bat :app:assembleDebug -PfullGameAssets=true
+```
+
+This package preserves the original directory tree under `assets/Data/`.
+It also keeps the standalone preview image under `assets/Sprites/maps/`.
+Use `jar tf .\app\build\outputs\apk\debug\app-debug.apk` to inspect
+packaged files. **Including the resources does not make the full game run.**
+Pomme's original filesystem APIs cannot yet treat Android APK assets as
+ordinary desktop files; file virtualization/extraction is still needed.
+Do not publish this resource-containing APK commercially.
+
+## Remaining full-game port blockers (not yet implemented)
+
+1. **Rendering compatibility:** Original `OGL_Support.c`, `MetaObjects.c`
+   and `Atlas.c` use desktop OpenGL fixed-function/immediate-mode calls
+   unavailable on Android GLES3. Evaluate a GL4ES compatibility approach
+   (https://github.com/ptitSeb/gl4es, MIT-licensed) versus an explicit GLES
+   shader rewrite before selecting either. Both need real device validation.
+2. **Pomme / filesystem:** Compile the pinned `extern/Pomme` submodule for
+   Android and map Macintosh-style FSSpec paths onto accessible game files.
+3. **Engine entry:** Build and link original C/C++ sources into an Android
+   native shared library with appropriate SDL3 lifecycle and GLES setup.
+4. **Runtime:** Validate splash/menu, music, collision, terrain, 3D entities,
+   levels and save-state behavior on hardware.
+5. **Mobile controls:** Integrate accelerometer flight, recalibration,
+   touchscreen buttons and navigation.
+6. **Verification:** Full gameplay testing, frame pacing, crash reporting,
+   rotation/pause/resume, memory use and APK checks.
+
+**Status:** Milestone 1 passed on a physical phone. Milestone 2A map asset
+loading was tested by the user; a full game build has not been produced.
+The optional full asset archive is a development facility, not proof of a
+working engine. Keep all work on `android-port`.

@@ -299,6 +299,14 @@ Boolean			didShoot = false;
 		case	WEAPON_TYPE_SONICSCREAM:
 				StopAChannel(&gPlayerInfo[playerNum].weaponChargeChannel);
 
+#ifdef __ANDROID__
+                // The initial weapon is Sonic Scream. On desktop it requires
+                // a long charge (weaponCharge > .3) before releasing FIRE.
+                // A quick mobile tap otherwise appears broken. Give a tap a
+                // minimum weak blast, while longer holds still charge normally.
+                if (gPlayerInfo[playerNum].weaponCharge <= .3f)
+                    gPlayerInfo[playerNum].weaponCharge = .31f;
+#endif
 				if (gPlayerInfo[playerNum].weaponCharge > .3f)			// see if sufficient charge to fire the weapon
 				{
 					ShootSonicScream(player);

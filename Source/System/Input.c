@@ -58,6 +58,9 @@ static KeyState		gNeedStates[NUM_CONTROL_NEEDS];
 static int			gLastGamepadForNeedAnyP[NUM_CONTROL_NEEDS];
 
 Boolean				gMouseMotionNow = false;
+#ifdef __ANDROID__
+    gAndroidTapToContinue = false;
+#endif
 char				gTextInput[64];
 
 #if MOUSE_SMOOTHING
@@ -174,6 +177,12 @@ static void ProcessSystemKeyChords(void)
 	}
 
 }
+
+#ifdef __ANDROID__
+// Per-frame touch-down event for cinematic/level splash screens. This is
+// independent of SDL's synthetic mouse clicks and doesn't affect menu UI.
+static bool gAndroidTapToContinue = false;
+#endif
 
 static void UpdateMouseButtonStates(int mouseWheelDeltaX, int mouseWheelDeltaY)
 {
@@ -318,6 +327,9 @@ void DoSDLMaintenance(void)
 		{
 #if defined(__ANDROID__) && defined(NANOSAUR_ANDROID_TOUCH_CONTROLS)
             case SDL_EVENT_FINGER_DOWN:
+                gAndroidTapToContinue = true;
+                NanosaurAndroidTouchEvent(&event.tfinger, false);
+                break;
             case SDL_EVENT_FINGER_MOTION:
                 NanosaurAndroidTouchEvent(&event.tfinger, false);
                 break;
@@ -551,6 +563,9 @@ Boolean UserWantsOut(void)
 		return false;
 
 	return IsNeedDown(kNeed_UIConfirm, ANY_PLAYER)
+#ifdef __ANDROID__
+        || gAndroidTapToContinue
+#endif
 		|| IsNeedDown(kNeed_UIBack, ANY_PLAYER)
 		|| IsNeedDown(kNeed_UIPause, ANY_PLAYER)
 		|| IsClickDown(SDL_BUTTON_LEFT);

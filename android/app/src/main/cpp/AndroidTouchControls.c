@@ -1,9 +1,9 @@
 // Temporary Nanosaur II Android touch controller for Phase 5 testing.
 // SDL touch coordinates are normalized to 0..1. Multi-finger controls:
-//   Lower-left: steering joystick (centre x=.23, y=.68)
-//   Lower-right: fire (x=.50-.78) / jetpack (x=.78-1)
-//   Middle-right: drop / camera
-//   Upper-right: next weapon / pause
+//   Lower-right: steering joystick (centre x=.77, y=.68)
+//   Lower-left: fire and jetpack
+//   Middle-left: drop and camera (expanded)
+//   Upper-left: next weapon and pause (expanded)
 // Keyboard and gamepad inputs continue to work alongside these zones.
 #include "game.h"
 #include <math.h>
@@ -30,13 +30,13 @@ static bool gToggleFingerHeld = false;
 static SDL_FingerID gToggleFingerID = 0;
 
 // Collapsed controls show only FIRE/JET and the MORE button.
-static const float gToggleCenterX = .87f;
+static const float gToggleCenterX = .13f;
 static const float gToggleCenterY = .16f;
 static const float gToggleRadiusX = .105f;
 static const float gToggleRadiusY = .12f;
 static bool gSteeringFingerActive = false;
 static SDL_FingerID gSteeringFinger = 0;
-static float gStickCenterX = .23f, gStickCenterY = .68f;
+static float gStickCenterX = .77f, gStickCenterY = .68f;
 static float gSmoothYaw = 0.0f, gSmoothPitch = 0.0f;
 static Uint64 gLastSteerTick = 0;
 
@@ -114,13 +114,13 @@ void NanosaurAndroidTouchEvent(const SDL_TouchFingerEvent* finger, bool released
     if (slot < 0)
         return;
 
-    // The first lower-left touch claims steering; other fingers may operate
+    // The first lower-right touch claims steering; other fingers may operate
     // action buttons simultaneously without hijacking the joystick.
-    if (!released && !gSteeringFingerActive && finger->x < .49f && finger->y > .30f)
+    if (!released && !gSteeringFingerActive && finger->x > .51f && finger->y > .30f)
     {
         gSteeringFinger = finger->fingerID;
         gSteeringFingerActive = true;
-        gStickCenterX = AndroidLimit(finger->x, .12f, .38f);
+        gStickCenterX = AndroidLimit(finger->x, .62f, .88f);
         gStickCenterY = AndroidLimit(finger->y, .49f, .82f);
         gSmoothYaw = 0.0f;
         gSmoothPitch = 0.0f;
@@ -181,13 +181,13 @@ static const struct AndroidActionButton {
     bool expandedOnly;
 } gAndroidActions[] = {
     // Main flight buttons remain accessible while secondary actions are hidden.
-    {.63f, .81f, .115f, .13f, kNeed_Fire, "FIRE", false},
-    {.87f, .81f, .105f, .13f, kNeed_Jetpack, "JET", false},
+    {.37f, .81f, .115f, .13f, kNeed_Fire, "FIRE", false},
+    {.13f, .81f, .105f, .13f, kNeed_Jetpack, "JET", false},
     // Secondary action buttons are deliberately kept away from MORE/LESS.
-    {.63f, .16f, .115f, .10f, kNeed_NextWeapon, "NEXT", true},
-    {.63f, .39f, .115f, .09f, kNeed_Drop, "DROP", true},
-    {.87f, .39f, .105f, .09f, kNeed_CameraMode, "VIEW", true},
-    {.63f, .59f, .115f, .09f, kNeed_UIPause, "PAUSE", true}
+    {.37f, .16f, .115f, .10f, kNeed_NextWeapon, "NEXT", true},
+    {.37f, .39f, .115f, .09f, kNeed_Drop, "DROP", true},
+    {.13f, .39f, .105f, .09f, kNeed_CameraMode, "VIEW", true},
+    {.37f, .59f, .115f, .09f, kNeed_UIPause, "PAUSE", true}
 };
 
 float NanosaurAndroidTouchNeedAnalog(int need)
@@ -293,8 +293,8 @@ void NanosaurAndroidDrawTouchHUD(void)
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    // Steering pad (lower-left) and thumb indicator.
-    const float padX = gSteeringFingerActive ? gStickCenterX : .23f;
+    // Steering pad (lower-right) and thumb indicator.
+    const float padX = gSteeringFingerActive ? gStickCenterX : .77f;
     const float padY = gSteeringFingerActive ? gStickCenterY : .68f;
     AndroidHudCircle(padX, padY, .17f, .07f, .12f, .16f, .28f);
     AndroidHudCircle(padX, padY, .145f, .62f, .87f, .98f, .17f);

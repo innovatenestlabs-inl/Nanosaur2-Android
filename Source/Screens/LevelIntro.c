@@ -657,7 +657,11 @@ static void SetupScreensaverObjects(void)
 		.moveCall	= MovePressAnyKey,
 		.scale		= 0.35f,
 	};
+	#ifdef __ANDROID__
+    newObj = TextMesh_New("TAP ANYWHERE", kTextMeshAlignCenter, &textDef);
+#else
 	newObj = TextMesh_New(Localize(gUserPrefersGamepad? STR_PRESS_START: STR_PRESS_ANY_KEY), kTextMeshAlignCenter, &textDef);
+#endif
 	newObj->ColorFilter.a = .6f;
 	newObj->AnaglyphZ = 6.0f;
 

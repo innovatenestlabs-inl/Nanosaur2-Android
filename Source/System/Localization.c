@@ -79,6 +79,15 @@ void LoadLocalizedStrings(GameLanguageID languageID)
 
 const char* Localize(LocStrID stringID)
 {
+#ifdef __ANDROID__
+    // Display touch-first guidance instead of desktop keyboard/gamepad
+    // prompts. The Android input layer also accepts finger-down in
+    // cinematic/continue screens (not just mouse emulation).
+    if (stringID == STR_PRESS_ANY_KEY || stringID == STR_PRESS_START
+        || stringID == STR_PRESS_START_TO_CONTINUE
+        || stringID == STR_PRESS_SPACE_TO_CONTINUE)
+        return "TAP ANYWHERE";
+#endif
 	if (!gStringsBuffer)
 		return "STRINGS NOT LOADED";
 

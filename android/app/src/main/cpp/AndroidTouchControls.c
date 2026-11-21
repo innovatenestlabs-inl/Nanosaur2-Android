@@ -146,10 +146,9 @@ void NanosaurAndroidDrawTouchHUD(void)
     glDisable(GL_ALPHA_TEST);
     OGL_ActiveTextureUnit(GL_TEXTURE0);
     glDisable(GL_TEXTURE_2D);
-    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-    glDisableClientState(GL_COLOR_ARRAY);
-    glDisableClientState(GL_NORMAL_ARRAY);
-    glDisableClientState(GL_VERTEX_ARRAY);
+    // Do not disable client vertex arrays here: glPushAttrib does not save
+    // GL_CLIENT_VERTEX_ARRAY_BIT, and leaving them disabled would corrupt
+    // subsequent native 3D draws when the HUD has been rendered.
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 

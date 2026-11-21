@@ -7,17 +7,25 @@ if (!new File(sdlRoot, 'CMakeLists.txt').isFile()) {
     throw new GradleException('SDL3 is missing. From the repository root, run: powershell -ExecutionPolicy Bypass -File android/setup-sdl.ps1')
 }
 
-// Package a real, unmodified Nanosaur 2 resource for the next graphics test.
-// Gradle stages the original file at build time; no duplicate asset is committed.
+// Explicitly bind the staging task to the Android build lifecycle.
+// A generated asset source directory alone does not reliably schedule the Copy task.
 def originalLevelMap = file('../../Data/Sprites/maps/level1.jpg')
 if (!originalLevelMap.isFile()) {
     throw new GradleException("Original game asset missing: ${originalLevelMap}")
 }
+def generatedAssetRoot = layout.buildDirectory.dir('generated/nanosaur-assets')
 def stagePreviewAssets = tasks.register('stageNanosaurPreviewAssets', Copy) {
     from(originalLevelMap) {
         into 'Sprites/maps'
     }
-    into(layout.buildDirectory.dir('generated/nanosaur-assets'))
+    into(generatedAssetRoot)
+    doLast {
+        def staged = new File(generatedAssetRoot.get().asFile, 'Sprites/maps/level1.jpg')
+        if (!staged.isFile() || staged.length() == 0) {
+            throw new GradleException("Nanosaur asset staging failed: ${staged}")
+        }
+        logger.lifecycle("Nanosaur original game map staged: ${staged}")
+    }
 }
 
 android {
@@ -57,7 +65,18 @@ android {
         main {
             // SDL3 Java code and C++ library must share the exact SDL3 revision.
             java.srcDir new File(sdlRoot, 'android-project/app/src/main/java')
-            assets.srcDir(stagePreviewAssets)
+            assets.srcDir(generatedAssetRoot)
         }
+    }
+}
+
+// The generated source root is registered above, but it must be populated
+// before Android's asset merger runs.
+tasks.named('preBuild').configure {
+    dependsOn(stagePreviewAssets)
+}
+tasks.configureEach { task ->
+    if (task.name.startsWith('merge') && task.name.endsWith('Assets')) {
+        task.dependsOn(stagePreviewAssets)
     }
 }

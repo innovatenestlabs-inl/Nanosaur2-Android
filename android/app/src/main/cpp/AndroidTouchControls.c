@@ -21,8 +21,49 @@ typedef struct
 
 static AndroidTouch gTouches[MAX_ANDROID_TOUCH_FINGERS];
 
+// Floating joystick prevents sudden steering when the user first touches.
+// Actions use discrete hit targets rather than triggering across an entire
+// right-side region. Gamepad and keyboard input are unaffected.
+static bool gAndroidGameplayActive = false;
+static bool gSteeringFingerActive = false;
+static SDL_FingerID gSteeringFinger = 0;
+static float gStickCenterX = .23f, gStickCenterY = .68f;
+static float gSmoothYaw = 0.0f, gSmoothPitch = 0.0f;
+static Uint64 gLastSteerTick = 0;
+
+void NanosaurAndroidTouchReset(void);
+
+void NanosaurAndroidTouchSetGameplayActive(bool active)
+{
+    if (gAndroidGameplayActive == active)
+        return;
+    gAndroidGameplayActive = active;
+    NanosaurAndroidTouchReset();
+}
+
+static float AndroidLimit(float value, float lo, float hi)
+{
+    return value < lo ? lo : (value > hi ? hi : value);
+}
+
+static float AndroidSteerCurve(float normalized)
+{
+    const float deadzone = .12f;
+    const float sign = normalized < 0.0f ? -1.0f : 1.0f;
+    float mag = fabsf(normalized);
+    if (mag <= deadzone)
+        return 0.0f;
+    mag = AndroidLimit((mag - deadzone) / (1.0f - deadzone), 0.0f, 1.0f);
+    // Mild quadratic acceleration improves fine steering around center.
+    return sign * (.60f * mag + .40f * mag * mag);
+}
+
+
 void NanosaurAndroidTouchEvent(const SDL_TouchFingerEvent* finger, bool released)
 {
+    if (!gAndroidGameplayActive || gGamePaused)
+        return;
+
     int slot = -1;
     for (int i = 0; i < MAX_ANDROID_TOUCH_FINGERS; ++i)
         if (gTouches[i].active && gTouches[i].id == finger->fingerID)
@@ -42,62 +83,118 @@ void NanosaurAndroidTouchEvent(const SDL_TouchFingerEvent* finger, bool released
     if (slot < 0)
         return;
 
+    // The first lower-left touch claims steering; other fingers may operate
+    // action buttons simultaneously without hijacking the joystick.
+    if (!released && !gSteeringFingerActive && finger->x < .49f && finger->y > .30f)
+    {
+        gSteeringFinger = finger->fingerID;
+        gSteeringFingerActive = true;
+        gStickCenterX = AndroidLimit(finger->x, .12f, .38f);
+        gStickCenterY = AndroidLimit(finger->y, .49f, .82f);
+        gSmoothYaw = 0.0f;
+        gSmoothPitch = 0.0f;
+        gLastSteerTick = SDL_GetTicks();
+    }
+
     gTouches[slot].active = !released;
     gTouches[slot].id = finger->fingerID;
     gTouches[slot].x = finger->x;
     gTouches[slot].y = finger->y;
+
+    if (released && gSteeringFingerActive && finger->fingerID == gSteeringFinger)
+    {
+        gSteeringFingerActive = false;
+        gSmoothYaw = 0.0f;
+        gSmoothPitch = 0.0f;
+        gLastSteerTick = 0;
+    }
 }
 
-static float ClampStrength(float strength)
+void NanosaurAndroidTouchTick(void)
 {
-    return strength >= 1.0f ? 1.0f : strength;
+    if (!gAndroidGameplayActive || gGamePaused)
+        return;
+
+    float targetYaw = 0.0f;
+    float targetPitch = 0.0f;
+    if (gSteeringFingerActive)
+    {
+        for (int i = 0; i < MAX_ANDROID_TOUCH_FINGERS; ++i)
+            if (gTouches[i].active && gTouches[i].id == gSteeringFinger)
+            {
+                // X/Y radii account for a landscape phone's aspect ratio.
+                targetYaw = AndroidSteerCurve((gTouches[i].x - gStickCenterX) / .11f);
+                targetPitch = AndroidSteerCurve((gTouches[i].y - gStickCenterY) / .21f);
+                break;
+            }
+    }
+
+    const Uint64 now = SDL_GetTicks();
+    float dt = gLastSteerTick ? (float)(now - gLastSteerTick) * .001f : .016f;
+    gLastSteerTick = now;
+    dt = AndroidLimit(dt, .001f, .06f);
+    const float alpha = 1.0f - expf(-22.0f * dt);
+    gSmoothYaw += (targetYaw - gSmoothYaw) * alpha;
+    gSmoothPitch += (targetPitch - gSmoothPitch) * alpha;
+    if (!gSteeringFingerActive)
+    {
+        gSmoothYaw = 0.0f;
+        gSmoothPitch = 0.0f;
+    }
 }
+
+static const struct AndroidActionButton {
+    float x, y, radiusX, radiusY;
+    int need;
+    const char* label;
+} gAndroidActions[] = {
+    {.63f, .78f, .12f, .15f, kNeed_Fire, "FIRE"},
+    {.89f, .78f, .11f, .15f, kNeed_Jetpack, "JET"},
+    {.63f, .41f, .12f, .125f, kNeed_Drop, "DROP"},
+    {.89f, .41f, .11f, .125f, kNeed_CameraMode, "VIEW"},
+    {.63f, .14f, .12f, .12f, kNeed_NextWeapon, "NEXT"},
+    {.89f, .14f, .11f, .12f, kNeed_UIPause, "PAUSE"}
+};
 
 float NanosaurAndroidTouchNeedAnalog(int need)
 {
-    float strength = 0.0f;
+    if (!gAndroidGameplayActive || gGamePaused)
+        return 0.0f;
+
+    switch (need)
+    {
+        case kNeed_YawLeft: return fmaxf(0.0f, -gSmoothYaw);
+        case kNeed_YawRight: return fmaxf(0.0f, gSmoothYaw);
+        case kNeed_PitchUp: return fmaxf(0.0f, -gSmoothPitch);
+        case kNeed_PitchDown: return fmaxf(0.0f, gSmoothPitch);
+        default: break;
+    }
+
     for (int i = 0; i < MAX_ANDROID_TOUCH_FINGERS; ++i)
     {
-        if (!gTouches[i].active)
+        if (!gTouches[i].active || (gSteeringFingerActive && gTouches[i].id == gSteeringFinger))
             continue;
 
-        const float x = gTouches[i].x;
-        const float y = gTouches[i].y;
-
-        if (x < .5f && y >= .32f)
+        for (size_t j = 0; j < SDL_arraysize(gAndroidActions); ++j)
         {
-            const float dx = (x - .23f) / .18f;
-            const float dy = (y - .68f) / .22f;
-
-            if (need == kNeed_YawLeft && dx < -.16f)
-                strength = GAME_MAX(strength, ClampStrength(-dx));
-            if (need == kNeed_YawRight && dx > .16f)
-                strength = GAME_MAX(strength, ClampStrength(dx));
-            if (need == kNeed_PitchUp && dy < -.16f)
-                strength = GAME_MAX(strength, ClampStrength(-dy));
-            if (need == kNeed_PitchDown && dy > .16f)
-                strength = GAME_MAX(strength, ClampStrength(dy));
-        }
-        else if (x >= .5f)
-        {
-            int action = 0;
-            if (y >= .55f)
-                action = x < .78f ? kNeed_Fire : kNeed_Jetpack;
-            else if (y >= .28f)
-                action = x < .78f ? kNeed_Drop : kNeed_CameraMode;
-            else
-                action = x < .78f ? kNeed_NextWeapon : kNeed_UIPause;
-
-            if (need == action)
-                strength = 1.0f;
+            const struct AndroidActionButton* button = &gAndroidActions[j];
+            if (button->need != need)
+                continue;
+            const float dx = (gTouches[i].x - button->x) / button->radiusX;
+            const float dy = (gTouches[i].y - button->y) / button->radiusY;
+            if (dx * dx + dy * dy <= 1.0f)
+                return 1.0f;
         }
     }
-    return strength;
+    return 0.0f;
 }
 
 void NanosaurAndroidTouchReset(void)
 {
     SDL_memset(gTouches, 0, sizeof(gTouches));
+    gSteeringFingerActive = false;
+    gSmoothYaw = gSmoothPitch = 0.0f;
+    gLastSteerTick = 0;
 }
 
 /*
@@ -114,7 +211,9 @@ static void AndroidHudCircle(float x, float y, float r, float red, float green, 
     for (int i = 0; i <= 32; ++i)
     {
         const float angle = (float) i * (6.28318530718f / 32.0f);
-        glVertex2f(x + cosf(angle) * r, y + sinf(angle) * r);
+        // Normalize the X radius so circles remain round on landscape phones.
+        const float aspect = gGameWindowWidth > 0 ? (float)gGameWindowHeight / (float)gGameWindowWidth : .5625f;
+        glVertex2f(x + cosf(angle) * r * aspect, y + sinf(angle) * r);
     }
     glEnd();
 }
@@ -128,6 +227,8 @@ static void AndroidHudLabel(const char* label, float x, float y)
 
 void NanosaurAndroidDrawTouchHUD(void)
 {
+    if (!gAndroidGameplayActive || gGamePaused)
+        return;
     // Save all desktop OpenGL fixed-function state and matrices before HUD.
     glPushAttrib(GL_ALL_ATTRIB_BITS);
     glMatrixMode(GL_PROJECTION);
@@ -153,15 +254,17 @@ void NanosaurAndroidDrawTouchHUD(void)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     // Steering pad (lower-left) and thumb indicator.
-    AndroidHudCircle(.23f, .68f, .17f, .07f, .12f, .16f, .28f);
-    AndroidHudCircle(.23f, .68f, .145f, .62f, .87f, .98f, .17f);
-    float thumbX = .23f;
-    float thumbY = .68f;
+    const float padX = gSteeringFingerActive ? gStickCenterX : .23f;
+    const float padY = gSteeringFingerActive ? gStickCenterY : .68f;
+    AndroidHudCircle(padX, padY, .17f, .07f, .12f, .16f, .28f);
+    AndroidHudCircle(padX, padY, .145f, .62f, .87f, .98f, .17f);
+    float thumbX = padX;
+    float thumbY = padY;
     for (int i = 0; i < MAX_ANDROID_TOUCH_FINGERS; ++i)
-        if (gTouches[i].active && gTouches[i].x < .5f && gTouches[i].y >= .32f)
+        if (gSteeringFingerActive && gTouches[i].active && gTouches[i].id == gSteeringFinger)
         {
-            float dx = gTouches[i].x - .23f;
-            float dy = gTouches[i].y - .68f;
+            float dx = (gTouches[i].x - padX) * 0.55f;
+            float dy = gTouches[i].y - padY;
             const float len = sqrtf(dx*dx + dy*dy);
             if (len > .12f)
             {
@@ -174,24 +277,12 @@ void NanosaurAndroidDrawTouchHUD(void)
         }
     AndroidHudCircle(thumbX, thumbY, .045f, .70f, .95f, 1.0f, .75f);
 
-    // Right action zones: match the current tested multitouch mapping.
-    static const struct {
-        float x, y, radius;
-        int need;
-        const char* label;
-    } buttons[] = {
-        {.63f, .78f, .065f, kNeed_Fire, "FIRE"},
-        {.89f, .78f, .065f, kNeed_Jetpack, "JET"},
-        {.63f, .41f, .050f, kNeed_Drop, "DROP"},
-        {.89f, .41f, .050f, kNeed_CameraMode, "CAM"},
-        {.63f, .14f, .045f, kNeed_NextWeapon, "NEXT"},
-        {.89f, .14f, .045f, kNeed_UIPause, "PAUSE"}
-    };
-
-    for (size_t i = 0; i < SDL_arraysize(buttons); ++i)
+    // Render actions from the same hit-target table used by input.
+    for (size_t i = 0; i < SDL_arraysize(gAndroidActions); ++i)
     {
-        const float pressed = NanosaurAndroidTouchNeedAnalog(buttons[i].need);
-        AndroidHudCircle(buttons[i].x, buttons[i].y, buttons[i].radius,
+        const struct AndroidActionButton* button = &gAndroidActions[i];
+        const float pressed = NanosaurAndroidTouchNeedAnalog(button->need);
+        AndroidHudCircle(button->x, button->y, button->radiusY * .56f,
                          pressed > 0 ? .10f : .03f,
                          pressed > 0 ? .75f : .20f,
                          pressed > 0 ? .30f : .28f,
@@ -207,8 +298,10 @@ void NanosaurAndroidDrawTouchHUD(void)
     glPopAttrib();
     glMatrixMode(GL_MODELVIEW);
 
-    for (size_t i = 0; i < SDL_arraysize(buttons); ++i)
-        AndroidHudLabel(buttons[i].label, buttons[i].x - .023f, buttons[i].y - .014f);
+    for (size_t i = 0; i < SDL_arraysize(gAndroidActions); ++i)
+        AndroidHudLabel(gAndroidActions[i].label,
+                        gAndroidActions[i].x - .025f,
+                        gAndroidActions[i].y - .014f);
 }
 
 #endif

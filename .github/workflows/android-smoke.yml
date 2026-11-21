@@ -52,7 +52,7 @@ jobs:
       - name: Compile original game engine objects (experimental)
         continue-on-error: true
         run: |
-          gradle -p android :app:configureCMakeDebug -PfullGameAssets=true -PengineProbe=true --stacktrace
+          gradle -p android :app:assembleDebug -PfullGameAssets=true -PengineProbe=true --stacktrace
           build_file="$(find android/app/.cxx/Debug -type f -name build.ninja -print -quit)"
           if [ -z "$build_file" ]; then
             echo "Couldn't find Android CMake/Ninja build directory"

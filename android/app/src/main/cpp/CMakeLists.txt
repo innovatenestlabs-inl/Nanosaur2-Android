@@ -26,6 +26,20 @@ set(SDL_STATIC OFF CACHE BOOL "" FORCE)
 set(SDL_TESTS OFF CACHE BOOL "" FORCE)
 add_subdirectory("${SDL_SOURCE_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/SDL" EXCLUDE_FROM_ALL)
 
+# Pomme's sound mixer uses find_package(SDL3 REQUIRED), while this project
+# builds SDL3 as an existing CMake target rather than installing it.
+# Export a tiny local package config that resolves to that existing target.
+# No system-wide SDL3 installation is required.
+set(POMME_SDL3_CONFIG_DIR "${CMAKE_CURRENT_BINARY_DIR}/pomme-sdl3-config")
+file(MAKE_DIRECTORY "${POMME_SDL3_CONFIG_DIR}")
+file(WRITE "${POMME_SDL3_CONFIG_DIR}/SDL3Config.cmake"
+     "if(NOT TARGET SDL3::SDL3)\n"
+     "  message(FATAL_ERROR \"SDL3 target must be configured before Pomme\")\n"
+     "endif()\n"
+     "set(SDL3_FOUND TRUE)\n")
+set(SDL3_DIR "${POMME_SDL3_CONFIG_DIR}" CACHE PATH "Internal SDL3 package configuration for Pomme" FORCE)
+
+
 
 # Compile the pinned Pomme filesystem/runtime core independently of the
 # desktop OpenGL renderer. These flags are intentionally a *probe* rather

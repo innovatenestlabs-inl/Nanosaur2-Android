@@ -46,7 +46,7 @@ bool SafeAssetPath(const std::string& path)
 // Called from the SDL native app thread, not the Android UI thread.
 // Returns true when all original resources and Pomme's host-volume mapping
 // have been verified, false for preview-only or failed extraction.
-bool InitializePommeResources()
+bool InitializePommeResources(bool retainPomme)
 {
     size_t manifestSize = 0;
     void* manifestRaw = SDL_LoadFile(kManifest, &manifestSize);
@@ -152,7 +152,10 @@ bool InitializePommeResources()
         }
 
         SDL_Log("Nanosaur Pomme filesystem ready: %s", dataRoot.string().c_str());
-        Pomme::Shutdown();  // The full game boot will own the persistent runtime later.
+        // The original game needs this same Pomme session. Reinitializing
+        // Pomme::Files would attempt to allocate system refnum 0 again.
+        if (!retainPomme)
+            Pomme::Shutdown();  // Preview-only mode retains old lifecycle.
         return true;
     }
     catch (const std::exception& exception)

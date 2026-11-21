@@ -18,7 +18,7 @@ FSSpec gDataSpec = {};
 int gCurrentAntialiasingLevel = 0;
 }
 
-extern bool InitializePommeResources();
+extern bool InitializePommeResources(bool retainPomme);
 
 static void ShutdownNativeGame()
 {
@@ -46,7 +46,7 @@ int main(int, char**)
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
-    if (!InitializePommeResources()) {
+    if (!InitializePommeResources(true)) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Full game resources unavailable");
         SDL_Quit();
         return 1;
@@ -69,7 +69,8 @@ int main(int, char**)
     }
 
     try {
-        Pomme::Init();
+        // InitializePommeResources(true) already initialized Pomme.
+        // Reinitialization allocates the system refnum twice and throws.
         const std::string systemDir = std::string(storage) + "/Data/System";
         gDataSpec = Pomme::Files::HostPathToFSSpec(::fs::path(systemDir));
         SDL_Log("Android original game entry initialized; starting GameMain");

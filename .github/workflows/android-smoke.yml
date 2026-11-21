@@ -23,12 +23,10 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Install Android SDK packages
-        run: |
-          echo "Using SDK at: $ANDROID_HOME"
-          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | head -n 1)"
-          if [ -z "$SDKMANAGER" ]; then echo "sdkmanager not found in Android SDK"; exit 1; fi
-          "$SDKMANAGER" --install "platforms;android-35" "build-tools;35.0.0" "cmake;3.22.1" "ndk;27.2.12479018"
+      - name: Android SDK and command-line tools
+        uses: android-actions/setup-android@v4
+        with:
+          packages: 'platforms;android-35 build-tools;35.0.0 cmake;3.22.1 ndk;27.2.12479018'
 
       - name: Clone pinned SDL3
         run: |

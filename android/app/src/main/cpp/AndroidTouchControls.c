@@ -1,9 +1,9 @@
 // Temporary Nanosaur II Android touch controller for Phase 5 testing.
 // SDL touch coordinates are normalized to 0..1. Multi-finger controls:
 //   Lower-right: steering joystick (centre x=.77, y=.68)
-//   Lower-left: fire and jetpack
-//   Middle-left: drop and camera (expanded)
-//   Upper-left: next weapon and pause (expanded)
+//   Lower-left: primary fire and jetpack; small drop button above.
+//   Upper-left: pause and a compact MORE toggle.
+//   Secondary NEXT/VIEW buttons appear only after MORE is tapped.
 // Keyboard and gamepad inputs continue to work alongside these zones.
 #include "game.h"
 #include <math.h>
@@ -29,11 +29,12 @@ static bool gAndroidActionsExpanded = false;
 static bool gToggleFingerHeld = false;
 static SDL_FingerID gToggleFingerID = 0;
 
-// Collapsed controls show only FIRE/JET and the MORE button.
-static const float gToggleCenterX = .13f;
-static const float gToggleCenterY = .16f;
-static const float gToggleRadiusX = .105f;
-static const float gToggleRadiusY = .12f;
+// Compact single-handed layout keeps FIRE/JET/DROP/PAUSE available;
+// optional NEXT/VIEW controls appear only when MORE is expanded.
+static const float gToggleCenterX = .34f;
+static const float gToggleCenterY = .14f;
+static const float gToggleRadiusX = .072f;
+static const float gToggleRadiusY = .095f;
 static bool gSteeringFingerActive = false;
 static SDL_FingerID gSteeringFinger = 0;
 static float gStickCenterX = .77f, gStickCenterY = .68f;
@@ -164,9 +165,14 @@ void NanosaurAndroidTouchTick(void)
     float dt = gLastSteerTick ? (float)(now - gLastSteerTick) * .001f : .016f;
     gLastSteerTick = now;
     dt = AndroidLimit(dt, .001f, .06f);
-    const float alpha = 1.0f - expf(-17.0f * dt);
-    gSmoothYaw += (targetYaw - gSmoothYaw) * alpha;
-    gSmoothPitch += (targetPitch - gSmoothPitch) * alpha;
+    const float yawAlpha = 1.0f - expf(-17.0f * dt);
+    // Never carry an opposite vertical command into a quick direction change.
+    // Keep enough smoothing for precise egg/wormhole approaches.
+    if (targetPitch * gSmoothPitch < 0.0f)
+        gSmoothPitch = 0.0f;
+    const float pitchAlpha = 1.0f - expf(-28.0f * dt);
+    gSmoothYaw += (targetYaw - gSmoothYaw) * yawAlpha;
+    gSmoothPitch += (targetPitch - gSmoothPitch) * pitchAlpha;
     if (!gSteeringFingerActive)
     {
         gSmoothYaw = 0.0f;
@@ -180,14 +186,16 @@ static const struct AndroidActionButton {
     const char* label;
     bool expandedOnly;
 } gAndroidActions[] = {
-    // Main flight buttons remain accessible while secondary actions are hidden.
-    {.37f, .81f, .115f, .13f, kNeed_Fire, "FIRE", false},
-    {.13f, .81f, .105f, .13f, kNeed_Jetpack, "JET", false},
-    // Secondary action buttons are deliberately kept away from MORE/LESS.
-    {.37f, .16f, .115f, .10f, kNeed_NextWeapon, "NEXT", true},
-    {.37f, .39f, .115f, .09f, kNeed_Drop, "DROP", false},
-    {.13f, .39f, .105f, .09f, kNeed_CameraMode, "VIEW", true},
-    {.37f, .59f, .115f, .09f, kNeed_UIPause, "PAUSE", false}
+    // Clear bottom row for frequent two-thumb actions; compact secondary row.
+    {.34f, .82f, .095f, .115f, kNeed_Fire, "FIRE", false},
+    {.13f, .82f, .090f, .115f, kNeed_Jetpack, "JET", false},
+    // DROP must remain available immediately when carrying an egg.
+    {.13f, .58f, .080f, .095f, kNeed_Drop, "DROP", false},
+    // PAUSE is always accessible; no need to open MORE first.
+    {.12f, .14f, .078f, .090f, kNeed_UIPause, "PAUSE", false},
+    // These are optional: kept away from main controls and from MORE toggle.
+    {.34f, .36f, .080f, .090f, kNeed_NextWeapon, "NEXT", true},
+    {.34f, .58f, .080f, .090f, kNeed_CameraMode, "VIEW", true}
 };
 
 float NanosaurAndroidTouchNeedAnalog(int need)
@@ -199,11 +207,11 @@ float NanosaurAndroidTouchNeedAnalog(int need)
     {
         case kNeed_YawLeft: return fmaxf(0.0f, -gSmoothYaw);
         case kNeed_YawRight: return fmaxf(0.0f, gSmoothYaw);
-        // Conventional mobile flight: drag up -> climb; down -> descend.
-        // The original engine's pitch direction is opposite to the
-        // previous Android gesture mapping.
-        case kNeed_PitchUp: return fmaxf(0.0f, gSmoothPitch);
-        case kNeed_PitchDown: return fmaxf(0.0f, -gSmoothPitch);
+        // The original GetNeedAnalogSteering(PitchUp, PitchDown) produces
+        // negative for climb and positive for dive. Screen Y increases down,
+        // so a downward drag must trigger PitchDown, not PitchUp.
+        case kNeed_PitchUp: return fmaxf(0.0f, -gSmoothPitch);
+        case kNeed_PitchDown: return fmaxf(0.0f, gSmoothPitch);
         default: break;
     }
 
@@ -324,7 +332,7 @@ void NanosaurAndroidDrawTouchHUD(void)
         if (button->expandedOnly && !gAndroidActionsExpanded)
             continue;
         const float pressed = NanosaurAndroidTouchNeedAnalog(button->need);
-        AndroidHudCircle(button->x, button->y, button->radiusY * .56f,
+        AndroidHudCircle(button->x, button->y, button->radiusY * .47f,
                          pressed > 0 ? .10f : .03f,
                          pressed > 0 ? .75f : .20f,
                          pressed > 0 ? .30f : .28f,
@@ -332,7 +340,7 @@ void NanosaurAndroidDrawTouchHUD(void)
     }
 
     // Toggle is always visible even while secondary controls are collapsed.
-    AndroidHudCircle(gToggleCenterX, gToggleCenterY, .048f,
+    AndroidHudCircle(gToggleCenterX, gToggleCenterY, .040f,
                      .08f, .25f, .38f, .65f);
 
     // Label glyphs use the original game's atlas/font. Restore our HUD

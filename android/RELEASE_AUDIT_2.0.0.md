@@ -203,3 +203,13 @@ Links for verification:
 
 These two compatibility requirements and distribution rights block any
 production-ready confirmation even if debug tests pass.
+
+
+## 2026-11-21 — Touch controller correction / UI simplification
+
+- Verified original input semantics: `GetNeedAnalogSteering(kNeed_PitchUp, kNeed_PitchDown)` returns negative for climb and positive for dive. Android's touch mapping previously connected these in reverse. Fixed drag up to climb / drag down to dive, subject to the user's `invertVerticalSteering` preference.
+- Vertical input smoothing now drops opposite-direction momentum and responds faster to reversals. Original desktop flight physics remains unchanged.
+- Left HUD consolidated into smaller FIRE/JET (bottom), DROP (mid-left), PAUSE (top-left), and MORE (top-middle-left). NEXT and VIEW are behind MORE. HUD targets use the same coordinates as hit testing.
+- **Not verified on hardware**: multiple screen sizes, actual orientation, long press, menu pause, egg collection, effects and three-level playthrough remain mandatory.
+- `main` if created is a code integration branch only; it is **not production or licensing sign-off**. The project still needs the original rights holder's written authorization for public distribution.
+- A test signing keystore was accidentally committed in earlier history. Removing it from the latest tree does not erase Git history. Rotate credentials, purge the leaked file from history and check all clones before considering release signing.

@@ -82,6 +82,16 @@ jobs:
       # First attempt to link the full original engine with GL4ES. This is
       # expected to reveal unresolved desktop symbols until port work is done.
       - name: Link original gameplay engine (experimental)
+        id: gameplay_build
         continue-on-error: true
         run: gradle -p android :app:assembleDebug -PfullGameAssets=true -PgameplayProbe=true --stacktrace
+
+      # Never confuse this experimental game APK with the verified preview.
+      - name: Upload experimental original-game APK
+        if: steps.gameplay_build.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: nanosaur2-android-original-engine-experimental-arm64
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
 

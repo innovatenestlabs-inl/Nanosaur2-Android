@@ -62,6 +62,16 @@ jobs:
           cmake --build "$(dirname "$build_file")" --target nanosaur-engine-probe --parallel 2
 
 
+      - name: Fetch pinned GL4ES compatibility source
+        run: |
+          git clone https://github.com/ptitSeb/gl4es.git android/gl4es
+          git -C android/gl4es checkout --detach 8b1a3da5d2331d0f88b70be25963182d46eed857
+          test "$(git -C android/gl4es rev-parse HEAD)" = "8b1a3da5d2331d0f88b70be25963182d46eed857"
+
+      - name: Compile GL4ES compatibility library (experimental)
+        continue-on-error: true
+        run: gradle -p android :app:assembleDebug -PfullGameAssets=true -PrendererProbe=true --stacktrace
+
       - name: Upload smoke-test APK
         uses: actions/upload-artifact@v4
         with:

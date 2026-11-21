@@ -483,3 +483,21 @@ Adventure levels 1–3, controls, save/load, audio and multi-device stability.
 The original game's current noncommercial licenses prohibit an INL commercial
 Play Store release without separately obtained rights. `master` is untouched,
 and GitHub Actions remain removed.
+
+## Android version 2.0.0 (release candidate — not signed/released)
+
+- After the original legal and intro animation, an independent,
+  noncommercial Android adaptation credit screen identifies Innovate Nest
+  Labs and version 2.0.0, while retaining original author notices.
+- Pause submenu selection now has Android-only touch-release gating,
+  selection debounce and taller row spacing to avoid accidental double tap.
+- Android APK carries `assets/licenses/LICENSE.md` and
+  `assets/licenses/NOTICE-ANDROID.txt`.
+- **Build number alone does not imply Phase 7 release readiness.**
+  Phase 7 manual acceptance criteria remain in `PHASE7_ACCEPTANCE.md`.
+- To see the full intro and adaptation credit, run `android/test-game.ps1`
+  without `-SkipIntro` or `-QuickPlay`.
+
+Do not distribute under the Innovate Nest Labs brand for commercial
+advantage without separately confirming the CC BY-NC-SA requirements
+and obtaining any necessary author permissions.

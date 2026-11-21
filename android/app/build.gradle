@@ -42,6 +42,14 @@ def stagePreviewAssets = tasks.register('stageNanosaurPreviewAssets', Copy) {
             into 'Sprites/maps'
         }
     }
+    // Preserve complete license terms and modification/author attribution
+    // within each APK (including copies shared without a storefront).
+    from(file('../../LICENSE.md')) {
+        into 'licenses'
+    }
+    from(file('NOTICE-ANDROID.txt')) {
+        into 'licenses'
+    }
     into(generatedAssetRoot)
     doLast {
         def staged = new File(generatedAssetRoot.get().asFile, 'Sprites/maps/level1.jpg')

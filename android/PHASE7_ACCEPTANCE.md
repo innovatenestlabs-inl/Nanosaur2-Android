@@ -91,3 +91,30 @@ verify save/load correctness, or certify phone hardware performance.
   licensed, production-ready release.
 - `android/app/build.gradle` blocks incomplete release variants to prevent
   accidentally distributing the old asset-preview binary.
+
+## Phase 7 outstanding verification — 21 November 2026
+
+The user reports that the Android game boots and controls work and the
+latest local build succeeds. **The following remain unverified in supplied
+logs:** all three Adventure levels and endings, save/load across force-stop,
+complete audio, stability across Android background/resume, and multi-device
+performance. A production-ready verdict cannot be issued on a successful
+startup log alone.
+
+Pending Android-only changes to test:
+- Resume/submenu taps must never select a second menu entry unintentionally.
+- A touch-up is required before another selection; a short selection debounce
+  and larger pause-menu row spacing are enabled.
+- The original legal/opening animation remains intact. The **independent**
+  Innovate Nest Labs adaptation credit appears afterwards during normal
+  startup (not when the debug `-SkipIntro` shortcut is enabled).
+- Android package versionName is `2.0.0`, versionCode `20000`.
+- APK includes upstream CC BY-NC-SA 4.0 license and attribution notice in
+  `assets/licenses/` for offline reference.
+
+**Release rights warning:** free distribution does not automatically imply
+NonCommercial use; business attribution that doubles as promotion can
+constitute commercial advantage. Obtain rights-holder advice/permission
+before public release if the use is not clearly noncommercial, and preserve
+original copyright notices and ShareAlike source distribution requirements.
+`main` must not be created until QA and rights checks are resolved.

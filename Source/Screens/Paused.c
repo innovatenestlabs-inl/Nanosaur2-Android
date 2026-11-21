@@ -131,6 +131,11 @@ void DoPaused(void)
 	MenuStyle style = kDefaultMenuStyle;
 	style.canBackOutOfRootMenu = true;
 	style.darkenPaneOpacity = .5f;
+#ifdef __ANDROID__
+    // Larger vertical row spacing prevents adjacent touch targets from
+    // overlapping on narrow landscape screens and confirmation dialogs.
+    style.rowHeight = 50.0f;
+#endif
 	style.startButtonExits = true;
 	style.exitCall = OnExitPause;
 	MakeMenu(gPauseMenuTree, &style);
@@ -149,6 +154,11 @@ void DoReallyQuit(void)
 	MenuStyle style = kDefaultMenuStyle;
 	style.canBackOutOfRootMenu = true;
 	style.darkenPaneOpacity = .5f;
+#ifdef __ANDROID__
+    // Larger vertical row spacing prevents adjacent touch targets from
+    // overlapping on narrow landscape screens and confirmation dialogs.
+    style.rowHeight = 50.0f;
+#endif
 	style.startButtonExits = true;
 	style.exitCall = OnExitPause;
 	MakeMenu(gReallyQuitMenuTree, &style);

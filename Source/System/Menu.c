@@ -219,6 +219,13 @@ typedef struct
 	uint64_t			validSaveSlotMask;
 } MenuNavigation;
 
+#ifdef __ANDROID__
+// Prevent a touchscreen press that selected one item from selecting another
+// item when a sub-menu opens under the still-pressed finger.
+static Uint64 gAndroidLastMenuPickTick = 0;
+static bool gAndroidMenuTapArmed = true;
+#endif
+
 static MenuNavigation* gNav = NULL;
 
 int gMenuOutcome = 0;
@@ -1176,6 +1183,17 @@ static void NavigatePick(const MenuItem* entry)
 
 	if (IsNeedDown(kNeed_UIConfirm, ANY_PLAYER) || validClick)
 	{
+#ifdef __ANDROID__
+        const Uint64 now = SDL_GetTicks();
+        // Debounce transition into newly displayed menus, and require a
+        // fresh tap after any prior touch selection.
+        if (now - gAndroidLastMenuPickTick < 350 ||
+            (validClick && !gAndroidMenuTapArmed))
+            return;
+        gAndroidLastMenuPickTick = now;
+        if (validClick)
+            gAndroidMenuTapArmed = false;
+#endif
 		if (!validClick)
 			gNav->mouseState = kMouseOff;		// exit mouse control if didn't get click
 
@@ -2616,6 +2634,12 @@ ObjNode* MakeMenu(const MenuItem* menu, const MenuStyle* style)
 
 static void MoveMenuDriver(ObjNode* theNode)
 {
+#ifdef __ANDROID__
+    // Only allow a new tap after the previous finger/mouse button is lifted.
+    // SDL's Android touch->mouse emulation updates SDL_GetMouseState.
+    if (!(SDL_GetMouseState(NULL, NULL) & SDL_BUTTON_LMASK))
+        gAndroidMenuTapArmed = true;
+#endif
 	if (gNav->menuState == kMenuStateOff)
 	{
 		return;

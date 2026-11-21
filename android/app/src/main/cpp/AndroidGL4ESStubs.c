@@ -42,3 +42,15 @@ void FreeFBVisual(void) {}
 void BlitEmulatedPixmap(int window) { (void) window; }
 void refreshMainFBO(void) {}
 void gl4es_SwapBuffers_currentContext(void) {}
+
+// Access GL4ES's internal compatibility entry points, not SDL's native
+// GLES2 functions: otherwise fixed-function material selection becomes
+// out-of-sync and surfaces render white or without their textures.
+extern void gl4es_glActiveTexture(unsigned int texture);
+extern void gl4es_glClientActiveTexture(unsigned int texture);
+
+void NanosaurAndroidSelectTextureUnit(unsigned int texture)
+{
+    gl4es_glActiveTexture(texture);
+    gl4es_glClientActiveTexture(texture);
+}

@@ -17,10 +17,17 @@
 /*    PROTOTYPES            */
 /****************************/
 
+#ifdef __ANDROID__
+// The SDL proc resolver returns native GLES entry points which bypass GL4ES.
+// The original fixed-function renderer must change texture units through
+// GL4ES's state machine, including both server/client selectors.
+extern void NanosaurAndroidSelectTextureUnit(unsigned int texUnit);
+#else
 static PFNGLACTIVETEXTUREPROC gGlActiveTextureProc;
 static PFNGLCLIENTACTIVETEXTUREARBPROC gGlClientActiveTextureProc;
 #define glActiveTexture gGlActiveTextureProc
 #define glClientActiveTexture gGlClientActiveTextureProc
+#endif
 
 static void OGL_CreateDrawContext(void);
 static void OGL_DisposeDrawContext(void);
@@ -392,11 +399,15 @@ GLint			maxTexSize;
 			/* GET GL PROCEDURES */
 			// Necessary on Windows
 
+#ifndef __ANDROID__
 	gGlActiveTextureProc = (PFNGLACTIVETEXTUREPROC) SDL_GL_GetProcAddress("glActiveTexture");
 	GAME_ASSERT(gGlActiveTextureProc);
 
 	gGlClientActiveTextureProc = (PFNGLCLIENTACTIVETEXTUREARBPROC) SDL_GL_GetProcAddress("glClientActiveTexture");
 	GAME_ASSERT(gGlClientActiveTextureProc);
+#else
+    SDL_Log("Nanosaur Android: GL4ES texture unit selection enabled (no native GLES bypass)");
+#endif
 }
 
 /**************** OGL: NUKE DRAW CONTEXT *********************/
@@ -2031,8 +2042,12 @@ void OGL_DisableTexture2D(void)
 
 void OGL_ActiveTextureUnit(uint32_t texUnit)
 {
+#ifdef __ANDROID__
+    NanosaurAndroidSelectTextureUnit(texUnit);
+#else
 	glActiveTexture(texUnit);
 	glClientActiveTexture(texUnit);
+#endif
 
 	gMyState_TextureUnit = texUnit;
 }

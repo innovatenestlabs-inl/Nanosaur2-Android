@@ -591,10 +591,40 @@ Boolean		needNormals;
 			/* SETUP VERTEX ARRAY */
 			/**********************/
 
+#ifdef __ANDROID__
+    // This is a diagnostic isolation point: glGetError() is sticky and the
+    // failure previously reported at the COLOR check may have been generated
+    // before this geometry draw started. Do NOT attribute it to a vertex API.
+    {
+        const GLenum pendingError = glGetError();
+        if (pendingError != GL_NO_ERROR)
+            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION,
+                "Nanosaur GL4ES vertex entry: pending error 0x%04x; points=%p colors=%p",
+                (unsigned) pendingError, (const void*) data->points,
+                (const void*) data->colorsFloat);
+    }
+    // Track precisely which fixed-function array call produces the FIRST new
+    // error. Do not mask errors or change the Windows/OpenGL code path.
+    #define ANDROID_CHECK_VERTEX_GL(stage) do { \
+        const GLenum e = glGetError(); \
+        if (e != GL_NO_ERROR) { \
+            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, \
+                "Nanosaur GL4ES vertex stage '%s' failed: 0x%04x, points=%p colors=%p", \
+                stage, (unsigned) e, (const void*) data->points, (const void*) data->colorsFloat); \
+            DoFatalAlert("Android GL4ES vertex '%s' failed: GL error 0x%04x", \
+                stage, (unsigned) e); \
+        } \
+    } while (0)
+#endif
+
 	glEnableClientState(GL_VERTEX_ARRAY);				// enable vertex arrays
+#ifdef __ANDROID__
+    ANDROID_CHECK_VERTEX_GL("glEnableClientState(GL_VERTEX_ARRAY)");
+#endif
 	glVertexPointer(3, GL_FLOAT, 0, data->points);		// point to points array
-
-
+#ifdef __ANDROID__
+    ANDROID_CHECK_VERTEX_GL("glVertexPointer");
+#endif
 
 			/***********************/
 			/* SETUP VERTEX COLORS */
@@ -603,14 +633,28 @@ Boolean		needNormals;
 	if (data->colorsFloat)									// do we have float colors?
 	{
 		glColorPointer(4, GL_FLOAT, 0, data->colorsFloat);
+#ifdef __ANDROID__
+        ANDROID_CHECK_VERTEX_GL("glColorPointer");
+#endif
 		glEnableClientState(GL_COLOR_ARRAY);				// enable color arrays
+#ifdef __ANDROID__
+        ANDROID_CHECK_VERTEX_GL("glEnableClientState(GL_COLOR_ARRAY)");
+#endif
 	}
 	else
+    {
 		glDisableClientState(GL_COLOR_ARRAY);				// no color data, so disable
+#ifdef __ANDROID__
+        ANDROID_CHECK_VERTEX_GL("glDisableClientState(GL_COLOR_ARRAY)");
+#endif
+    }
 
-
+#ifdef __ANDROID__
+    #undef ANDROID_CHECK_VERTEX_GL
+#else
 	if (OGL_CheckError())
 		DoFatalAlert("MO_DrawGeometry_VertexArray: color!");
+#endif
 
 
 

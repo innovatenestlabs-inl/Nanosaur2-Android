@@ -160,6 +160,69 @@ void DoLegalScreen(void)
 
 
 
+
+#ifdef __ANDROID__
+/* Independent noncommercial Android credit. Original legal notices retained. */
+void DoAndroidPortCreditScreen(void)
+{
+    OGLSetupInputType viewDef;
+    OGL_NewViewDef(&viewDef);
+    viewDef.camera.hither = 10;
+    viewDef.camera.yon = 3000;
+    viewDef.view.clearColor = (OGLColorRGBA){0, 0, 0, 1};
+    viewDef.styles.useFog = false;
+    OGL_SetupGameView(&viewDef);
+
+    LoadSpriteAtlas(ATLAS_GROUP_FONT3, ":Sprites:fonts:swiss", kAtlasLoadFont);
+
+    const char* lines[] = {
+        "NANOSAUR II",
+        "UNOFFICIAL ANDROID ADAPTATION",
+        "",
+        "Android Version Prepared by Innovate Nest Labs",
+        "Version 2.0.0",
+        "",
+        "Original game: Pangea Software, Inc.",
+        "Desktop port: Iliyas Jorio",
+        "Independent noncommercial adaptation",
+        "Not officially endorsed",
+        NULL
+    };
+    NewObjectDefinitionType textDef = {
+        .scale = .18f,
+        .group = ATLAS_GROUP_FONT3,
+        .coord = {320, 145, 0},
+    };
+
+    for (int i = 0; lines[i]; ++i)
+    {
+        if (*lines[i])
+        {
+            ObjNode* textNode = TextMesh_New(lines[i], kTextMeshAlignCenter, &textDef);
+            textNode->ColorFilter = (OGLColorRGBA){1, 1, 1, 1};
+        }
+        textDef.coord.y += 21;
+    }
+
+    // Brief, skippable credit after the original opening, not instead of it.
+    float remaining = 3.0f;
+    MyFlushEvents();
+    while (remaining > 0)
+    {
+        CalcFramesPerSecond();
+        OGL_DrawScene(DrawObjects);
+        DoSDLMaintenance();
+        if (UserWantsOut())
+            break;
+        remaining -= gFramesPerSecondFrac;
+    }
+
+    DeleteAllObjects();
+    OGL_DisposeGameView();
+    MyFlushEvents();
+}
+#endif
+
 #pragma mark -
 
 /********************** DRAW LOADING *************************/

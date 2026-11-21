@@ -1139,6 +1139,12 @@ unsigned long	someLong;
 #ifdef __ANDROID__
 	SDL_Log("Nanosaur Android stage: Intro story finished");
 #endif
+#ifdef __ANDROID__
+    extern void DoAndroidPortCreditScreen(void);
+    SDL_Log("Nanosaur Android stage: Port credit starting");
+    DoAndroidPortCreditScreen();
+    SDL_Log("Nanosaur Android stage: Port credit finished");
+#endif
 #endif
 
 

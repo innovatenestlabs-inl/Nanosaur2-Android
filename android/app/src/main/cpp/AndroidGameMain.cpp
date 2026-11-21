@@ -36,7 +36,7 @@ static void ShutdownNativeGame()
 
 int main(int, char**)
 {
-    SDL_SetAppMetadata("Nanosaur II Android Engine Test", "0.3.0-dev",
+    SDL_SetAppMetadata("Nanosaur II Android Adaptation", "2.0.0",
                        "com.innovatenestlabs.nanosaur2");
 
     // SDL generates mouse clicks from finger taps so the original menu

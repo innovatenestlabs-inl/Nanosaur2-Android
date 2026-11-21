@@ -5,7 +5,7 @@
 
     <application
         android:allowBackup="false"
-        android:label="Nanosaur 2 (Android Test)"
+        android:label="Nanosaur II (Android)"
         android:theme="@android:style/Theme.Material.Light.NoActionBar"
         android:hardwareAccelerated="true">
         <activity

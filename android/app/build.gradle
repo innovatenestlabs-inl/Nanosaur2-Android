@@ -1,0 +1,49 @@
+plugins {
+    id 'com.android.application'
+}
+
+def sdlRoot = file('../SDL')
+if (!new File(sdlRoot, 'CMakeLists.txt').isFile()) {
+    throw new GradleException('SDL3 is missing. From the repository root, run: powershell -ExecutionPolicy Bypass -File android/setup-sdl.ps1')
+}
+
+android {
+    namespace 'com.innovatenestlabs.nanosaur2'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId 'com.innovatenestlabs.nanosaur2'
+        minSdk 23
+        targetSdk 35
+        versionCode 1
+        versionName '0.1.0-dev'
+
+        ndk {
+            abiFilters 'arm64-v8a'
+        }
+        externalNativeBuild {
+            cmake {
+                arguments '-DANDROID_STL=c++_shared'
+            }
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    externalNativeBuild {
+        cmake {
+            path file('src/main/cpp/CMakeLists.txt')
+            version '3.22.1'
+        }
+    }
+
+    sourceSets {
+        main {
+            // SDL3's Android integration must match the native SDL3 source version.
+            java.srcDir new File(sdlRoot, 'android-project/app/src/main/java')
+        }
+    }
+}

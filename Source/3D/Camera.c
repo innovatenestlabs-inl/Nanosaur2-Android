@@ -57,6 +57,9 @@ Boolean				gCameraInDeathDiveMode[MAX_PLAYERS] = {false, false};
 static OGLPoint3D	gSunCoord;
 
 Byte				gCameraMode[MAX_PLAYERS] = {CAMERA_MODE_NORMAL, CAMERA_MODE_NORMAL};
+#ifdef __ANDROID__
+static bool gAndroidChaseCameraWide = false;
+#endif
 
 static const float	gFlareOffsetTable[NUM_FLARES]=
 {
@@ -345,7 +348,10 @@ SkeletonObjDataType	*skeleton;
 float				oldCamX,oldCamZ,oldCamY,oldPointOfInterestX,oldPointOfInterestZ,oldPointOfInterestY;
 const OGLVector3D 	up = {0,1,0};
 OGLMatrix4x4		m;
-const OGLPoint3D	tailOff = {0, 60, CAMERA_DEFAULT_DIST_FROM_ME};
+OGLPoint3D tailOff = {0, 60, CAMERA_DEFAULT_DIST_FROM_ME};
+#ifdef __ANDROID__
+    tailOff.z *= gAndroidChaseCameraWide ? 1.4f : 1.0f;
+#endif
 const OGLPoint3D	noseOff = {0, 0, -600};
 
 	if (gTimeDemo)			// don't do anything in time demo mode
@@ -378,6 +384,16 @@ const OGLPoint3D	noseOff = {0, 0, -600};
 
 				/* SEE IF TOGGLE CAMERA MODE */
 
+#ifdef __ANDROID__
+        // Never hide the dinosaur on mobile: CAM switches between two
+        // third-person distances instead of enabling first-person view.
+        if (IsNeedDown(kNeed_CameraMode, playerNum))
+        {
+            gAndroidChaseCameraWide = !gAndroidChaseCameraWide;
+            SDL_Log("Nanosaur Android camera: %s", gAndroidChaseCameraWide ? "wide" : "normal");
+        }
+        gCameraMode[playerNum] = CAMERA_MODE_NORMAL;
+#else
 		if (IsNeedDown(kNeed_CameraMode, playerNum))				// is button pressed?
 		{
 			gCameraMode[playerNum]++;
@@ -393,6 +409,7 @@ const OGLPoint3D	noseOff = {0, 0, -600};
 			}
 		}
 
+#endif
 		if (gCameraMode[playerNum] == CAMERA_MODE_FIRSTPERSON)
 		{
 			UpdateCamera_FirstPerson(playerNum);
@@ -495,7 +512,11 @@ const OGLPoint3D	noseOff = {0, 0, -600};
 
 			delta = distZ * (fps * fromAcc);							// calc delta to move
 			if (fabs(delta) > fabs(distZ))								// see if will overshoot
-				delta = distX;
+				#ifdef __ANDROID__
+                delta = distZ;
+#else
+                delta = distX;
+#endif
 			from.z = oldCamZ + delta;									// move z
 
 			delta = distY * (fps * fromAcc);							// calc delta to move

@@ -44,6 +44,24 @@ def stagePreviewAssets = tasks.register('stageNanosaurPreviewAssets', Copy) {
             if (!systemDir.isDirectory()) {
                 throw new GradleException("Original game system resources missing: ${systemDir}")
             }
+
+            // APK AssetManager cannot enumerate our nested resources reliably
+            // through SDL's desktop filesystem APIs. Supply a deterministic
+            // newline-delimited manifest for one-time native extraction.
+            def dataDir = file('../../Data')
+            def paths = []
+            fileTree(dataDir).visit { element ->
+                if (!element.isDirectory()) {
+                    paths.add(element.relativePath.pathString.replace('\\', '/'))
+                }
+            }
+            paths.sort()
+            if (!paths.contains('System/gamecontrollerdb.txt')) {
+                throw new GradleException("Required game controller database missing")
+            }
+            def manifest = new File(generatedAssetRoot.get().asFile, 'nanosaur-data-files.txt')
+            manifest.setText(paths.join('\n') + '\n', 'UTF-8')
+            logger.lifecycle("Nanosaur resource manifest contains ${paths.size()} files")
         }
         logger.lifecycle("Nanosaur assets staged (fullGameAssets=${fullGameAssets}): ${generatedAssetRoot.get().asFile}")
     }

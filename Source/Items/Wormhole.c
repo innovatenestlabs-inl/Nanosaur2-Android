@@ -498,6 +498,10 @@ static void MakeExitWormhole(float x, float z)
 	};
 
 	gExitWormhole = MakeNewDisplayGroupObject(&def);
+#ifdef __ANDROID__
+    SDL_Log("Nanosaur Android progression: exit wormhole spawned at x=%.1f z=%.1f (level %d)",
+            x, z, gLevelNum + 1);
+#endif
 
 	gExitWormhole->Rot.x = PI/8;
 	UpdateObjectTransforms(gExitWormhole);
@@ -604,6 +608,9 @@ float				dot;
 	player->MotionVector = v2;
 
 	gCameraInExitMode = true;
+#ifdef __ANDROID__
+    SDL_Log("Nanosaur Android progression: player entered exit wormhole (level %d)", gLevelNum + 1);
+#endif
 }
 
 

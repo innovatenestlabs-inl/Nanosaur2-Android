@@ -637,7 +637,12 @@ Boolean	gotAllEggs = true;
 				}
 
 				if (gotAllEggs)
+                {
 					gOpenPlayerWormhole = true;
+#ifdef __ANDROID__
+                    SDL_Log("Nanosaur Android progression: all required eggs collected on level %d; exit wormhole unlocked", gLevelNum + 1);
+#endif
+                }
 
 				break;
 

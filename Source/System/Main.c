@@ -884,6 +884,9 @@ void StartLevelCompletion(float coolDownTimer)
 	{
 		gLevelCompleted = true;
 		gLevelCompletedCoolDownTimer = coolDownTimer;
+#ifdef __ANDROID__
+        SDL_Log("Nanosaur Android progression: Level %d completed, cooldown %.1fs", gLevelNum + 1, coolDownTimer);
+#endif
 	}
 }
 

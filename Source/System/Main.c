@@ -1003,14 +1003,26 @@ unsigned long	someLong;
 				/* BOOT STUFF */
 				/**************/
 
+#ifdef __ANDROID__
+	SDL_Log("Nanosaur Android stage: Toolbox initialization started");
+#endif
 	ToolBoxInit();
+#ifdef __ANDROID__
+	SDL_Log("Nanosaur Android stage: Toolbox initialized");
+#endif
 
 
 #if !_DEBUG
 	SDL_HideCursor();
 #endif
 
+#ifdef __ANDROID__
+	SDL_Log("Nanosaur Android stage: Warm-up screen starting");
+#endif
 	DoWarmUpScreen();
+#ifdef __ANDROID__
+	SDL_Log("Nanosaur Android stage: Warm-up screen finished");
+#endif
 
 
 
@@ -1036,15 +1048,33 @@ unsigned long	someLong;
 
 			/* PRELOAD SPRITES FOR ENTIRE GAME */
 
+#ifdef __ANDROID__
+	SDL_Log("Nanosaur Android stage: Loading global game assets");
+#endif
 	LoadGlobalAssets();
+#ifdef __ANDROID__
+	SDL_Log("Nanosaur Android stage: Global assets ready");
+#endif
 
 
 #if !SKIPFLUFF
 		/* SHOW TITLES */
 
+#ifdef __ANDROID__
+	SDL_Log("Nanosaur Android stage: Legal screen starting");
+#endif
 	DoLegalScreen();
+#ifdef __ANDROID__
+	SDL_Log("Nanosaur Android stage: Legal screen finished");
+#endif
 
+#ifdef __ANDROID__
+	SDL_Log("Nanosaur Android stage: Intro story starting");
+#endif
 	DoIntroStoryScreen();
+#ifdef __ANDROID__
+	SDL_Log("Nanosaur Android stage: Intro story finished");
+#endif
 #endif
 
 
@@ -1059,7 +1089,13 @@ unsigned long	someLong;
 			/* DO MAIN MENU */
 
 		MyFlushEvents();
+#ifdef __ANDROID__
+		SDL_Log("Nanosaur Android stage: Main menu starting");
+#endif
 		DoMainMenuScreen();
+#ifdef __ANDROID__
+		SDL_Log("Nanosaur Android stage: Main menu selection finished");
+#endif
 
 			/* PLAY ADVENTURE OR VS. MODE */
 

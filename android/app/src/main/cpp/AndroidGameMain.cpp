@@ -9,6 +9,10 @@
 #include <PommeFiles.h>
 #include <gl4esinit.h>
 #include <exception>
+#include <filesystem>
+#include <cstdlib>
+#include <system_error>
+#include <stdexcept>
 #include <string>
 
 extern "C" {
@@ -69,6 +73,23 @@ int main(int, char**)
     }
 
     try {
+        // Pomme::FindFolder(kPreferencesFolderType) uses XDG_CONFIG_HOME
+        // on Unix-like systems. Android has neither HOME nor XDG_CONFIG_HOME
+        // guaranteed, so give it an existing app-private preferences root.
+        const std::filesystem::path prefsRoot =
+            std::filesystem::path(storage) / "Preferences";
+        std::error_code prefsError;
+        std::filesystem::create_directories(prefsRoot, prefsError);
+        if (prefsError) {
+            throw std::runtime_error("Cannot create Android preferences folder: "
+                                     + prefsError.message());
+        }
+        if (setenv("XDG_CONFIG_HOME", prefsRoot.string().c_str(), 1) != 0) {
+            throw std::runtime_error("Cannot configure Android preferences directory");
+        }
+        SDL_Log("Nanosaur Android preferences root ready: %s",
+                prefsRoot.string().c_str());
+
         // InitializePommeResources(true) already initialized Pomme.
         // Reinitialization allocates the system refnum twice and throws.
         const std::string systemDir = std::string(storage) + "/Data/System";

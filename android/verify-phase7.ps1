@@ -41,6 +41,7 @@ if ($LASTEXITCODE -ne 0) { throw 'Cannot inspect the APK archive' }
 $required = @(
     'assets/Data/System/gamecontrollerdb.txt',
     'assets/nanosaur-data-files.txt',
+    'assets/nanosaur-data-version.txt',
     'assets/licenses/LICENSE.md',
     'assets/licenses/NOTICE-ANDROID.txt',
     'assets/Sprites/maps/level1.jpg',

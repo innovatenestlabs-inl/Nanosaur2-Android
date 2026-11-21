@@ -78,6 +78,23 @@ def stagePreviewAssets = tasks.register('stageNanosaurPreviewAssets', Copy) {
             }
             def manifest = new File(generatedAssetRoot.get().asFile, 'nanosaur-data-files.txt')
             manifest.setText(paths.join('\n') + '\n', 'UTF-8')
+            // Fingerprint actual file CONTENT, not only filenames. Android
+            // app-private extracted assets must refresh when APK data changes.
+            def digest = java.security.MessageDigest.getInstance('SHA-256')
+            paths.each { path ->
+                digest.update(path.getBytes('UTF-8'))
+                digest.update((byte) 0)
+                new File(dataDir, path).withInputStream { stream ->
+                    byte[] chunk = new byte[16384]
+                    int n
+                    while ((n = stream.read(chunk)) != -1) {
+                        digest.update(chunk, 0, n)
+                    }
+                }
+            }
+            def fingerprint = digest.digest().collect { String.format('%02x', it & 0xff) }.join('')
+            new File(generatedAssetRoot.get().asFile, 'nanosaur-data-version.txt')
+                .setText(fingerprint + '\n', 'UTF-8')
             logger.lifecycle("Nanosaur resource manifest contains ${paths.size()} files")
         }
         logger.lifecycle("Nanosaur assets staged (fullGameAssets=${fullGameAssets}): ${generatedAssetRoot.get().asFile}")

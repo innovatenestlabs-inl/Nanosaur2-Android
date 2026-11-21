@@ -21,6 +21,8 @@ namespace
 namespace nativefs = std::filesystem;
 constexpr const char* kManifest = "nanosaur-data-files.txt";
 constexpr const char* kInstalledManifest = ".nanosaur-data-manifest";
+constexpr const char* kVersionAsset = "nanosaur-data-version.txt";
+constexpr const char* kInstalledVersion = ".nanosaur-data-version";
 
 std::string ReadDiskText(const nativefs::path& path)
 {
@@ -64,6 +66,20 @@ bool InitializePommeResources(bool retainPomme)
         return false;
     }
 
+    // A separate APK-provided SHA-256 fingerprint covers resource bytes.
+    // The filename-only manifest cannot detect changes to existing assets.
+    size_t versionSize = 0;
+    void* versionRaw = SDL_LoadFile(kVersionAsset, &versionSize);
+    if (!versionRaw || versionSize == 0)
+    {
+        if (versionRaw) SDL_free(versionRaw);
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION,
+                     "Missing Android game resource version/fingerprint");
+        return false;
+    }
+    const std::string packagedVersion(static_cast<const char*>(versionRaw), versionSize);
+    SDL_free(versionRaw);
+
     const char* internalDir = SDL_GetAndroidInternalStoragePath();
     if (!internalDir || !*internalDir)
     {
@@ -75,10 +91,12 @@ bool InitializePommeResources(bool retainPomme)
     const nativefs::path root(internalDir);
     const nativefs::path dataRoot = root / "Data";
     const nativefs::path installedManifest = root / kInstalledManifest;
+    const nativefs::path installedVersion = root / kInstalledVersion;
 
     try
     {
         if (ReadDiskText(installedManifest) != manifest ||
+            ReadDiskText(installedVersion) != packagedVersion ||
             !nativefs::is_regular_file(dataRoot / "System" / "gamecontrollerdb.txt"))
         {
             std::istringstream entries(manifest);
@@ -129,6 +147,14 @@ bool InitializePommeResources(bool retainPomme)
             std::ofstream marker(installedManifest, std::ios::binary | std::ios::trunc);
             marker.write(manifest.data(), static_cast<std::streamsize>(manifest.size()));
             if (!marker) throw std::runtime_error("Failed to save game resource manifest");
+            marker.close();
+            // Commit the new fingerprint only after all files and the
+            // manifest were written successfully.
+            std::ofstream versionMarker(installedVersion, std::ios::binary | std::ios::trunc);
+            versionMarker.write(packagedVersion.data(),
+                                static_cast<std::streamsize>(packagedVersion.size()));
+            if (!versionMarker)
+                throw std::runtime_error("Failed to save game resource fingerprint");
             SDL_Log("Nanosaur extracted %zu original game resources (%zu bytes)", extracted, totalBytes);
         }
         else

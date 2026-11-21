@@ -58,9 +58,6 @@ static KeyState		gNeedStates[NUM_CONTROL_NEEDS];
 static int			gLastGamepadForNeedAnyP[NUM_CONTROL_NEEDS];
 
 Boolean				gMouseMotionNow = false;
-#ifdef __ANDROID__
-    gAndroidTapToContinue = false;
-#endif
 char				gTextInput[64];
 
 #if MOUSE_SMOOTHING
@@ -308,6 +305,10 @@ void DoSDLMaintenance(void)
 {
 	gTextInput[0] = '\0';
 	gMouseMotionNow = false;
+#ifdef __ANDROID__
+    // Reset the single-frame touch signal before processing fresh SDL events.
+    gAndroidTapToContinue = false;
+#endif
 	int mouseWheelDeltaX = 0;
 	int mouseWheelDeltaY = 0;
 

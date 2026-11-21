@@ -235,3 +235,59 @@ markers for Toolbox, warmup, global assets, legal screen, intro and menu.
 These determine where a dark screen begins. A successful native APK
 build is not proof of visible gameplay. The full Phase 4/5 still
 requires device verification and functioning controls.
+
+## Phase 5: Android Quick Play / first level test (experimental)
+
+For the first **3D gameplay** test, the `-PgameplayProbe=true` build
+enables `NANOSAUR_ANDROID_QUICKPLAY` by default. This bypasses the long
+legal/story presentation and the desktop main menu. It launches the actual
+original Adventure Level 1 through `PlayGame_Adventure()`, then the
+original `InitLevel()` and `PlayLevel()` functions. This is a diagnostic
+shortcut, not a finished Android menu or a completed level.
+
+To keep the original intro/menu for comparison, pass
+`-PgameplayProbe=true` with the CMake setting
+`-DNANOSAUR_ANDROID_QUICKPLAY=OFF` (in the native build configuration).
+
+### Temporary touchscreen layout (landscape orientation)
+
+All coordinates refer to proportions of the *screen*, not world space:
+
+- Lower-left half: analog steering. Neutral point near 23% from left,
+  68% from top. Drag left/right to yaw and up/down to pitch.
+- Right lower-middle: FIRE (right half x=50–78%, lower 45% of screen)
+- Far right lower: JETPACK (x=78–100%, lower 45%)
+- Right middle: DROP (x=50–78%, y=28–55%), CAMERA (x=78–100%, y=28–55%)
+- Right upper: NEXT WEAPON (x=50–78%, y=0–28%), PAUSE (x=78–100%, y=0–28%)
+
+These are **temporary invisible hit zones** to test the native game loop.
+Multi-touch is supported. Bluetooth controllers/keyboard remain available.
+Visible buttons, calibration, safe-area layout and accessibility are Phase 6.
+
+### Local PowerShell build and runtime test
+
+```powershell
+cd E:\Projects\Game\Nanosaur2-Android
+git checkout android-port
+git pull origin android-port
+cd android
+.\gradlew.bat :app:assembleDebug -PfullGameAssets=true -PgameplayProbe=true
+if ($LASTEXITCODE -ne 0) { throw 'Build failed — do not install old APK' }
+adb install -r .\app\build\outputs\apk\debug\app-debug.apk
+if ($LASTEXITCODE -ne 0) { throw 'APK install failed' }
+adb logcat -c
+adb shell am force-stop com.innovatenestlabs.nanosaur2
+adb shell am start -n com.innovatenestlabs.nanosaur2/.NanosaurActivity
+Start-Sleep -Seconds 15
+adb logcat -d -s SDL:V SDL/APP:V AndroidRuntime:E libc:E
+```
+
+Look for `Nanosaur Android QUICKPLAY: starting Adventure Level 1`,
+`Nanosaur Android level: InitLevel complete`, `Nanosaur Android level:
+PlayLevel started` and `Nanosaur Android level: first 3D frame submitted`.
+Logs do **not** prove the image is visible or the game is playable. A
+real Android device must display the terrain and dinosaur and respond
+to steering/fire before Phase 5 can be considered complete.
+
+All GitHub Actions workflows are removed. Keep `master` unchanged and
+do not create the production `main` branch until Phase 7 is tested.

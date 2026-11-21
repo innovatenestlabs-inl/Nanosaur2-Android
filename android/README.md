@@ -159,3 +159,39 @@ Verify these native log markers:
 If Pomme reports a failed FSSpec lookup, the filesystem bridge isn't complete.
 Android's app-private path does **not** imply that the desktop engine has been
 ported; rendering, input, audio and engine boot still remain separate work.
+
+## Milestone 4 — Original engine/GL4ES compile probes (experimental)
+
+The **verified preview** remains the default build:
+
+```powershell
+.\gradlew.bat :app:assembleDebug -PfullGameAssets=true
+```
+
+The original engine's files can be compiled as a separate CMake object target
+using `-PengineProbe=true`. The original engine still isn't linked to the
+preview executable. The CI workflow explicitly builds `nanosaur-engine-probe`
+to expose missing desktop OpenGL APIs/other Android issues:
+
+```powershell
+.\gradlew.bat :app:assembleDebug -PfullGameAssets=true -PengineProbe=true
+```
+
+A separate experimental compatibility library checkout is available:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\setup-gl4es.ps1
+.\gradlew.bat :app:assembleDebug -PfullGameAssets=true -PrendererProbe=true
+```
+
+GL4ES: <https://github.com/ptitSeb/gl4es>, MIT license; pinned checkout
+`8b1a3da5d2331d0f88b70be25963182d46eed857` is ignored by Git.
+This experimental target compiles GL4ES for ARM64/GLES2 but does **not**
+substitute it for the GLES3 preview renderer or link it to the game yet.
+The engine and GL4ES probes may initially fail until Android compatibility
+changes are made. CI marks these audits experimental while keeping the
+known-good APK build as a required step.
+
+**Do not install an APK produced by an unsuccessful audit as if the audit
+succeeded.** The original 3D game cannot be exercised until the render bridge,
+game entry point, Pomme audio, controls, and engine integration are finished.

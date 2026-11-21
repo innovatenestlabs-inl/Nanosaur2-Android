@@ -118,3 +118,43 @@ constitute commercial advantage. Obtain rights-holder advice/permission
 before public release if the use is not clearly noncommercial, and preserve
 original copyright notices and ShareAlike source distribution requirements.
 `main` must not be created until QA and rights checks are resolved.
+
+## 21 November source-level Adventure and release-readiness audit
+
+See [`RELEASE_AUDIT_2.0.0.md`](RELEASE_AUDIT_2.0.0.md) for detailed
+source evidence, status, and production blockers.
+
+- Android normal flight speed has been reduced from 900 to **850**. The
+  original desktop game remains 900; jetpack maximum speed is unchanged.
+- Adventure HUD shows `LEVEL n/3 - BIOME  EGGS x/y` and retains the
+  existing in-level overhead minimap and egg icons.
+- `Play Game > LEVEL GUIDE` lists Forest, Desert and Swamp; it is a
+  read-only guide, not an unlock-all or persistent completed-chapters map.
+- A completed egg quota unlocks an **exit wormhole at an egg wormhole**,
+  not necessarily the entry wormhole. The player must approach and enter
+  the opened exit to finish the level. Debug logs record this progression.
+- The Android APK includes a content SHA-256 signature of the game assets;
+  an update with changed asset contents re-extracts game resources even if
+  the filenames are identical.
+- GL4ES gameplay uses GLES 2.0, so Android's manifest requirement has
+  been aligned to GLES 2.0; the optional separate old preview still uses
+  a GLES 3 rendering path.
+- **Release decision: not yet production-ready.** Full Adventure
+  playthrough, saves, audio, performance, signed release artifact,
+  third-party notices, and public distribution rights remain open.
+- Continue only on `android-port`; keep `master` unchanged, and
+  reserve `main` until all mandatory checks have passed.
+
+### Post-egg progression log
+
+After delivering all eggs, enter the new wormhole, then run:
+
+```powershell
+adb logcat -d -s SDL:V SDL/APP:V AndroidRuntime:E libc:E |
+    Select-String 'Nanosaur Android progression|InitLevel started|Fatal|exception'
+```
+
+The sequence should include all-eggs completion, exit spawn, player
+entry, level completion, and then a next-level InitLevel (level=1 for
+Desert, level=2 for Swamp). The real screen must also show the
+progression; a log line alone does not certify a complete level.

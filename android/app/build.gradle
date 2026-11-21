@@ -103,12 +103,12 @@ def stagePreviewAssets = tasks.register('stageNanosaurPreviewAssets', Copy) {
 
 android {
     namespace 'com.innovatenestlabs.nanosaur2'
-    compileSdk 35
+    compileSdk 36
 
     defaultConfig {
         applicationId 'com.innovatenestlabs.nanosaur2'
         minSdk 23
-        targetSdk 35
+        targetSdk 36
         versionCode 20000
         versionName '2.0.0'
 

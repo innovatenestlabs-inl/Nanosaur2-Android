@@ -120,3 +120,42 @@ Do not publish this resource-containing APK commercially.
 loading was tested by the user; a full game build has not been produced.
 The optional full asset archive is a development facility, not proof of a
 working engine. Keep all work on `android-port`.
+
+## Milestone 2B — Pomme filesystem bridge (experimental)
+
+The `-PfullGameAssets=true` build now generates
+`assets/nanosaur-data-files.txt` with sorted original resource filenames.
+When launching this build, `PommeResources.cpp` extracts the original
+`assets/Data/**` files into the app's **private internal storage**. An
+installed-manifest marker avoids repeating extraction when resources are
+unchanged. The native program calls `Pomme::Init()` and checks that Pomme
+can resolve the original `:System:gamecontrollerdb.txt` FSSpec.
+
+The original level-map preview remains the fallback; there is **no playable
+original gameplay yet** and the rest of the desktop engine isn't linked.
+
+Build and launch on Windows:
+
+```powershell
+git pull origin android-port
+cd android
+.\gradlew.bat :app:assembleDebug -PfullGameAssets=true
+adb install -r .\app\build\outputs\apk\debug\app-debug.apk
+adb logcat -c
+adb shell am force-stop com.innovatenestlabs.nanosaur2
+adb shell am start -n com.innovatenestlabs.nanosaur2/.NanosaurActivity
+Start-Sleep -Seconds 8
+adb logcat -d -s SDL:V SDL/APP:V AndroidRuntime:E
+```
+
+Verify these native log markers:
+
+- `Nanosaur extracted N original game resources` (initial launch)
+- `Nanosaur game assets already installed; extraction skipped` (next launch)
+- `Nanosaur Pomme filesystem ready`
+- `Nanosaur Android Pomme filesystem probe: READY`
+- `Loaded original Nanosaur image`
+
+If Pomme reports a failed FSSpec lookup, the filesystem bridge isn't complete.
+Android's app-private path does **not** imply that the desktop engine has been
+ported; rendering, input, audio and engine boot still remain separate work.

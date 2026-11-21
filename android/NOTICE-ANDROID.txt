@@ -1,0 +1,37 @@
+NANOSAUR II: HATCHLING — UNOFFICIAL ANDROID ADAPTATION
+Android Version Prepared by Innovate Nest Labs
+Android adaptation version: 2.0.0
+
+ORIGINAL WORK AND ATTRIBUTION
+Original Nanosaur II: Hatchling game and art:
+  Copyright (c) 2004-2008 Pangea Software, Inc.
+  Nanosaur is a registered trademark of Pangea Software, Inc.
+Original game / rights holder: https://pangeasoft.net/
+Modern desktop port by Iliyas Jorio (with Pangea Software's permission):
+  https://github.com/jorio/Nanosaur2
+
+This Android adaptation is an independent modification of the desktop port.
+It is not sponsored, endorsed, or officially approved by Pangea Software
+or Iliyas Jorio. The Android contribution does not claim ownership of the
+original game, characters, story, music, or other original assets.
+
+COPYRIGHT AND DISTRIBUTION CONDITIONS
+The upstream Nanosaur II port is supplied under CC BY-NC-SA 4.0:
+  https://creativecommons.org/licenses/by-nc-sa/4.0/
+See the complete license in licenses/LICENSE.md within this APK.
+This notice identifies adaptation changes and is not a separate commercial
+license. NonCommercial means not primarily intended for or directed toward
+commercial advantage or monetary compensation. Distribution by a business
+and use of its branding may require further rights review even if the APK
+is offered without a purchase price.
+
+THIRD-PARTY COMPONENTS
+SDL3: https://github.com/libsdl-org/SDL
+Pomme: https://github.com/jorio/Pomme
+GL4ES: https://github.com/ptitSeb/gl4es
+See component source repositories for their separate licenses and notices.
+
+ADAPTATION CHANGES
+Android ARM64 native build, file-system resource extraction, GL4ES graphics
+compatibility, touch control overlay, lifecycle handling, preferences and
+in-game credit screen. The original game notices are retained.

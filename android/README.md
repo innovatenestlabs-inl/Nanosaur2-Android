@@ -195,3 +195,43 @@ known-good APK build as a required step.
 **Do not install an APK produced by an unsuccessful audit as if the audit
 succeeded.** The original 3D game cannot be exercised until the render bridge,
 game entry point, Pomme audio, controls, and engine integration are finished.
+
+## Local-only Android gameplay testing policy (21 Nov 2026)
+
+Android development occurs exclusively on `android-port`. **Do not modify
+`master`**: it must remain the upstream desktop fork. The `main` branch is
+reserved for the fully tested, production-ready Android version after Phase 7;
+do not create or merge to it prematurely.
+
+All GitHub Actions workflows were removed from `android-port` at the user's
+request. The developer tests builds and runtime directly on Windows and a
+physical Android handset. Do not claim CI passed for subsequent commits.
+
+The experimental original gameplay build is:
+
+```powershell
+cd E:\Projects\Game\Nanosaur2-Android
+git checkout android-port
+git pull origin android-port
+cd android
+.\gradlew.bat :app:assembleDebug -PfullGameAssets=true -PgameplayProbe=true
+if ($LASTEXITCODE -ne 0) { throw 'Android game build failed; APK not installed' }
+adb install -r .\app\build\outputs\apk\debug\app-debug.apk
+adb logcat -c
+adb shell am force-stop com.innovatenestlabs.nanosaur2
+adb shell am start -n com.innovatenestlabs.nanosaur2/.NanosaurActivity
+Start-Sleep -Seconds 12
+adb logcat -d -s SDL:V SDL/APP:V AndroidRuntime:E libc:E
+```
+
+**Preferences fix:** Android startup now creates
+`<SDL_GetAndroidInternalStoragePath()>/Preferences` and assigns it to
+`XDG_CONFIG_HOME` before `GameMain()`. Pomme's `FindFolder` expects
+this directory to exist even on the first launch. Do not bypass the
+original save/load code or store prefs in external public storage.
+
+**Scene diagnostics:** `Source/System/Main.c` includes Android-only log
+markers for Toolbox, warmup, global assets, legal screen, intro and menu.
+These determine where a dark screen begins. A successful native APK
+build is not proof of visible gameplay. The full Phase 4/5 still
+requires device verification and functioning controls.

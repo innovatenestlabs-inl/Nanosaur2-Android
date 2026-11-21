@@ -13,18 +13,39 @@ def originalLevelMap = file('../../Data/Sprites/maps/level1.jpg')
 if (!originalLevelMap.isFile()) {
     throw new GradleException("Original game asset missing: ${originalLevelMap}")
 }
-def generatedAssetRoot = layout.buildDirectory.dir('generated/nanosaur-assets')
+// Experimental full-resource APK for later Pomme/game engine integration.
+// Default keeps the quick asset-preview build small and unchanged.
+def fullGameAssets = providers.gradleProperty('fullGameAssets').map { it.toBoolean() }.getOrElse(false)
+def generatedAssetRoot = layout.buildDirectory.dir(
+    fullGameAssets ? 'generated/nanosaur-full-assets' : 'generated/nanosaur-assets')
+
 def stagePreviewAssets = tasks.register('stageNanosaurPreviewAssets', Copy) {
-    from(originalLevelMap) {
-        into 'Sprites/maps'
+    if (fullGameAssets) {
+        from(file('../../Data')) {
+            into 'Data'
+        }
+        // Keep the preview path available while game engine expects Data/.
+        from(originalLevelMap) {
+            into 'Sprites/maps'
+        }
+    } else {
+        from(originalLevelMap) {
+            into 'Sprites/maps'
+        }
     }
     into(generatedAssetRoot)
     doLast {
         def staged = new File(generatedAssetRoot.get().asFile, 'Sprites/maps/level1.jpg')
         if (!staged.isFile() || staged.length() == 0) {
-            throw new GradleException("Nanosaur asset staging failed: ${staged}")
+            throw new GradleException("Nanosaur preview asset staging failed: ${staged}")
         }
-        logger.lifecycle("Nanosaur original game map staged: ${staged}")
+        if (fullGameAssets) {
+            def systemDir = new File(generatedAssetRoot.get().asFile, 'Data/System')
+            if (!systemDir.isDirectory()) {
+                throw new GradleException("Original game system resources missing: ${systemDir}")
+            }
+        }
+        logger.lifecycle("Nanosaur assets staged (fullGameAssets=${fullGameAssets}): ${generatedAssetRoot.get().asFile}")
     }
 }
 

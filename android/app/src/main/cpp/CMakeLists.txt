@@ -18,7 +18,27 @@ set(SDL_STATIC OFF CACHE BOOL "" FORCE)
 set(SDL_TESTS OFF CACHE BOOL "" FORCE)
 add_subdirectory("${SDL_SOURCE_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/SDL" EXCLUDE_FROM_ALL)
 
+
+# Compile the pinned Pomme filesystem/runtime core independently of the
+# desktop OpenGL renderer. These flags are intentionally a *probe* rather
+# than the game's final audio/graphics configuration.
+get_filename_component(POMME_SOURCE_DIR "${GAME_ROOT}/extern/Pomme" ABSOLUTE)
+if(NOT EXISTS "${POMME_SOURCE_DIR}/CMakeLists.txt")
+    message(FATAL_ERROR "Pomme submodule missing. Run git submodule update --init --recursive")
+endif()
+set(POMME_NO_GRAPHICS TRUE)
+set(POMME_NO_INPUT TRUE)
+set(POMME_NO_QD3D TRUE)
+set(POMME_NO_VIDEO TRUE)
+set(POMME_NO_MP3 TRUE)
+set(POMME_NO_SOUND_MIXER TRUE)
+set(POMME_NO_SOUND_FORMATS TRUE)
+add_subdirectory("${POMME_SOURCE_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/Pomme" EXCLUDE_FROM_ALL)
+
 add_library(main SHARED smoke_main.cpp)
+# Compile/link Pomme now so missing Android platform facilities fail in CI.
+target_link_libraries(main PRIVATE Pomme)
+
 target_include_directories(main PRIVATE "${GAME_ROOT}/Source/Headers")
 find_library(GLES3_LIB GLESv3 REQUIRED)
 find_library(LOG_LIB log REQUIRED)

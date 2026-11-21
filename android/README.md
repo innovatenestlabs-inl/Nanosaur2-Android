@@ -393,3 +393,20 @@ steering, scene rendering, pause/resume, and camera behavior on physical
 devices before we mark Phase 6 complete. CI remains disabled. The untouched
 desktop branch is `master`; `main` remains reserved for the completed
 Phase 7 Android release.
+
+### Repeatable local test runner
+
+A local PowerShell runner builds, installs, launches and writes filtered
+device logs without GitHub Actions:
+
+```powershell
+cd E:\Projects\Game\Nanosaur2-Android
+git pull origin android-port
+powershell -ExecutionPolicy Bypass -File .\android\test-game.ps1
+```
+
+For a faster menu-only test, add `-SkipIntro`. To debug the older
+direct-to-Level-1 flow, add `-QuickPlay`. Neither option is enabled in
+the default Android build. The output `android/nanosaur-local-test.log`
+is ignored by Git. The command deliberately aborts if build/install
+fails, preventing an old APK from being mistaken for a successful build.

@@ -181,3 +181,25 @@ Preserve `master` exactly as the original desktop fork.
 **Decision remains: not Play Store ready.** A signed AAB, rights review,
 actual three-level physical-device progression, save/load, and lifecycle
 performance acceptance are outstanding.
+
+## Google Play technical requirements checked 2026-11-21
+
+Current `android/app/build.gradle` targets **API 35** using Android
+Gradle Plugin **8.7.3** and the installed NDK r27. As of November 2026,
+Google Play requires **target API 36** for new Android phone apps and
+updates. Do not submit an API 35 AAB. Upgrade Android Gradle tooling,
+compileSdk and targetSdk together after installing the Android 36 SDK,
+then run a fresh local build and physical-device test. No unchecked
+SDK/toolchain migration has been pushed to this working debug branch.
+
+The Android build now requests 16 KB ELF alignment for `main` and
+`SDL3-shared` (NDK r27 linker flags). Confirm **all** packaged native
+libraries including `libc++_shared.so` and ZIP alignment from the
+actual APK/AAB; linker flags are not proof of Play compliance.
+
+Links for verification:
+- https://support.google.com/googleplay/android-developer/answer/11926878
+- https://developer.android.com/guide/practices/page-sizes
+
+These two compatibility requirements and distribution rights block any
+production-ready confirmation even if debug tests pass.

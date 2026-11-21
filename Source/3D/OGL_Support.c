@@ -1581,7 +1581,8 @@ void OGL_Texture_SetOpenGLTexture(GLuint textureName)
     // report its error at the NEXT check, incorrectly blaming glBindTexture.
     // Log the pre-existing error separately before testing this operation.
     GLenum previousError = glGetError();
-    if (previousError != GL_NO_ERROR)
+    static unsigned int loggedPreviousBindErrors = 0;
+    if (previousError != GL_NO_ERROR && loggedPreviousBindErrors++ < 12)
     {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION,
             "Nanosaur GL4ES: pre-existing GL error 0x%04x before texture bind (id=%u)",

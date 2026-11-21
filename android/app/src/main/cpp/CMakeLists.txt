@@ -118,6 +118,12 @@ if(NANOSAUR_RENDERER_PROBE)
     set(DEFAULT_ES 2 CACHE STRING "GL4ES GLES2 backend" FORCE)
     include_directories("${GL4ES_ROOT}/include")
     add_subdirectory("${GL4ES_ROOT}/src" "${CMAKE_CURRENT_BINARY_DIR}/gl4es" EXCLUDE_FROM_ALL)
+    # We add the GL4ES src/ subdirectory directly, not its root CMakeLists.
+    # Therefore its root options do not inject C compiler preprocessor defines.
+    # Set Android/GLES2/no-GLX flags explicitly on the library target.
+    target_compile_definitions(GL PRIVATE
+        ANDROID NOX11 NO_GBM NOEGL NO_LOADER NO_INIT_CONSTRUCTOR
+        STATICLIB DEFAULT_ES=2)
     add_dependencies(main GL)
     if(NANOSAUR_GAMEPLAY_PROBE)
         target_link_libraries(main PRIVATE GL)

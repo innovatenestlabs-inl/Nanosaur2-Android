@@ -72,6 +72,10 @@ if(NANOSAUR_GAMEPLAY_PROBE)
     add_library(main SHARED AndroidGameMain.cpp AndroidGL4ESStubs.c AndroidTouchControls.c PommeResources.cpp ${NANOSAUR_GAME_SOURCES})
     target_include_directories(main PRIVATE "${CMAKE_CURRENT_LIST_DIR}" "${GAME_ROOT}/Source/Headers")
     target_compile_definitions(main PRIVATE GL_SILENCE_DEPRECATION)
+    option(NANOSAUR_ANDROID_SKIP_STARTUP_CUTSCENES "Debug: skip opening titles and show main menu immediately" OFF)
+    if(NANOSAUR_ANDROID_SKIP_STARTUP_CUTSCENES)
+        target_compile_definitions(main PRIVATE NANOSAUR_ANDROID_SKIP_STARTUP_CUTSCENES=1)
+    endif()
     # Mobile HUD/input always enabled in gameplay, including normal menu startup.
     target_compile_definitions(main PRIVATE NANOSAUR_ANDROID_TOUCH_CONTROLS=1)
     # Opt-in debug shortcut only. Normal Android startup shows the main menu.

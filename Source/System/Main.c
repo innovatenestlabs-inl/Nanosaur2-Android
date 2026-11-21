@@ -1111,9 +1111,9 @@ unsigned long	someLong;
 #endif
 
 
-// Mobile starts at the original menu; the intro/cutscene remains accessible
-// through the game's Info/Story menu instead of delaying every launch.
-#if !SKIPFLUFF && !defined(__ANDROID__)
+// Normal startup preserves the game's original opening screens and main menu.
+// A separate opt-in Android flag can skip only the cinematics for local testing.
+#if !SKIPFLUFF && !(defined(__ANDROID__) && defined(NANOSAUR_ANDROID_SKIP_STARTUP_CUTSCENES))
 		/* SHOW TITLES */
 
 #ifdef __ANDROID__

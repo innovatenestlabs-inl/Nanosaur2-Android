@@ -83,7 +83,7 @@ android {
         }
         externalNativeBuild {
             cmake {
-                arguments '-DANDROID_STL=c++_shared', '-DNANOSAUR_ENGINE_PROBE=' + (providers.gradleProperty('engineProbe').map { it.toBoolean() }.getOrElse(false) ? 'ON' : 'OFF'), '-DNANOSAUR_RENDERER_PROBE=' + (providers.gradleProperty('rendererProbe').map { it.toBoolean() }.getOrElse(false) ? 'ON' : 'OFF'), '-DNANOSAUR_GAMEPLAY_PROBE=' + (providers.gradleProperty('gameplayProbe').map { it.toBoolean() }.getOrElse(false) ? 'ON' : 'OFF'), '-DNANOSAUR_ANDROID_QUICKPLAY=' + (providers.gradleProperty('quickPlay').map { it.toBoolean() }.getOrElse(false) ? 'ON' : 'OFF')
+                arguments '-DANDROID_STL=c++_shared', '-DNANOSAUR_ENGINE_PROBE=' + (providers.gradleProperty('engineProbe').map { it.toBoolean() }.getOrElse(false) ? 'ON' : 'OFF'), '-DNANOSAUR_RENDERER_PROBE=' + (providers.gradleProperty('rendererProbe').map { it.toBoolean() }.getOrElse(false) ? 'ON' : 'OFF'), '-DNANOSAUR_GAMEPLAY_PROBE=' + (providers.gradleProperty('gameplayProbe').map { it.toBoolean() }.getOrElse(false) ? 'ON' : 'OFF'), '-DNANOSAUR_ANDROID_QUICKPLAY=' + (providers.gradleProperty('quickPlay').map { it.toBoolean() }.getOrElse(false) ? 'ON' : 'OFF'), '-DNANOSAUR_ANDROID_SKIP_STARTUP_CUTSCENES=' + (providers.gradleProperty('skipIntro').map { it.toBoolean() }.getOrElse(false) ? 'ON' : 'OFF')
             }
         }
     }

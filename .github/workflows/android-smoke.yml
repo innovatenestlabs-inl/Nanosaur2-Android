@@ -23,11 +23,10 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Android SDK
-        uses: android-actions/setup-android@v3
-
       - name: Install Android SDK packages
         run: |
+          echo "Using SDK at: $ANDROID_HOME"
+          command -v sdkmanager
           sdkmanager --install "platforms;android-35" "build-tools;35.0.0" "cmake;3.22.1" "ndk;27.2.12479018"
 
       - name: Clone pinned SDL3
@@ -41,11 +40,12 @@ jobs:
           gradle-version: '8.9'
 
       - name: Assemble debug APK
-        run: gradle -p android :app:assembleDebug --stacktrace
+        working-directory: android
+        run: bash ./gradlew :app:assembleDebug --stacktrace
 
       - name: Upload smoke-test APK
         uses: actions/upload-artifact@v4
         with:
-          name: nanosaur2-android-smoke-arm64
+          name: nanosaur2-android-asset-preview-arm64
           path: android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error

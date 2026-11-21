@@ -47,6 +47,13 @@ jobs:
           unzip -l android/app/build/outputs/apk/debug/app-debug.apk | grep -F 'assets/Data/System/gamecontrollerdb.txt'
           unzip -l android/app/build/outputs/apk/debug/app-debug.apk | grep -F 'assets/nanosaur-data-files.txt'
 
+      - name: Upload smoke-test APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: nanosaur2-android-asset-preview-arm64
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+
       # Do not treat an up-to-date Gradle task as proof that native game
       # source code was compiled. Invoke the CMake object target explicitly.
       - name: Compile original game engine objects (experimental)
@@ -78,9 +85,3 @@ jobs:
         continue-on-error: true
         run: gradle -p android :app:assembleDebug -PfullGameAssets=true -PgameplayProbe=true --stacktrace
 
-      - name: Upload smoke-test APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: nanosaur2-android-asset-preview-arm64
-          path: android/app/build/outputs/apk/debug/app-debug.apk
-          if-no-files-found: error

@@ -239,15 +239,14 @@ requires device verification and functioning controls.
 ## Phase 5: Android Quick Play / first level test (experimental)
 
 For the first **3D gameplay** test, the `-PgameplayProbe=true` build
-enables `NANOSAUR_ANDROID_QUICKPLAY` by default. This bypasses the long
+previously enabled `NANOSAUR_ANDROID_QUICKPLAY` by default. This bypasses the long
 legal/story presentation and the desktop main menu. It launches the actual
 original Adventure Level 1 through `PlayGame_Adventure()`, then the
 original `InitLevel()` and `PlayLevel()` functions. This is a diagnostic
 shortcut, not a finished Android menu or a completed level.
 
-To keep the original intro/menu for comparison, pass
-`-PgameplayProbe=true` with the CMake setting
-`-DNANOSAUR_ANDROID_QUICKPLAY=OFF` (in the native build configuration).
+To reproduce the older direct-Level-1 test, pass `-PquickPlay=true` alongside
+`-PgameplayProbe=true`. Normal gameplay builds now start at the original menu.
 
 ### Temporary touchscreen layout (landscape orientation)
 
@@ -306,7 +305,7 @@ retains the previously tested multi-finger input logic.
 - Button indicators brighten when their touch zone is pressed.
 - Finger state clears if the app loses focus or enters the background.
 
-The HUD is rendered **only** in the Android quick-play level callback; the
+The HUD is rendered during gameplay from the Android level callback; the
 original desktop renderer and input mapping remain unchanged. The touch
 layout is temporary and still requires safe-area, tablet/phone, pause/resume,
 and real-device verification. In particular, the HUD rendering must not
@@ -339,3 +338,58 @@ adb logcat -d -s SDL:V SDL/APP:V AndroidRuntime:E libc:E
 
 No GitHub Actions validation is performed. Production `main` is reserved
 until Phase 7; `master` remains the unchanged desktop fork.
+
+## Phase 6 normal Android startup and controls — November 2026
+
+The gameplay build now **defaults to original Nanosaur 2 startup**:
+opening screens, intro and original title/menu, followed by the Adventure
+campaign when selected. The desktop code and other game modes are not changed.
+Tap original menu entries using SDL3's synthesized touch-to-mouse clicks.
+The Android touch controls are compiled independently of Quick Play, so they
+also work after using the normal menu to start a game.
+
+For fast local testing, `-PskipIntro=true` omits only startup opening
+cutscenes, but still shows the original menu. `-PquickPlay=true` is an
+**explicit debug-only** shortcut directly into Adventure Level 1. These
+flags are **OFF** by default even if an earlier CMake build cached them,
+because Gradle passes both flags explicitly.
+
+The Android chase camera keeps the dinosaur visible at all times when
+switching VIEW, alternating between near/far chase views. A pre-existing
+Z-axis camera overshoot typo is fixed for Android only. Transformation and
+death animations may still temporarily hide the character intentionally.
+
+The Android controller has a floating left joystick (first touch establishes
+neutral), nonlinear deadzone and frame-based smoothing. Right action buttons
+require contact near their displayed control, reducing accidental activation.
+Touch ownership is independent for multi-finger fire/jet/steering, and touch
+state resets on background/focus change. The pause menu and title menu use
+normal mouse/menu input rather than synthetic flight controls.
+
+To test normal startup on Windows:
+
+```powershell
+cd E:\Projects\Game\Nanosaur2-Android
+git checkout android-port
+git pull origin android-port
+cd android
+.\gradlew.bat :app:assembleDebug -PfullGameAssets=true -PgameplayProbe=true
+if ($LASTEXITCODE -ne 0) { throw "BUILD FAILED: do not install stale APK" }
+adb install -r .\app\build\outputs\apk\debug\app-debug.apk
+if ($LASTEXITCODE -ne 0) { throw "APK INSTALL FAILED" }
+adb logcat -c
+adb shell am force-stop com.innovatenestlabs.nanosaur2
+adb shell am start -n com.innovatenestlabs.nanosaur2/.NanosaurActivity
+```
+
+Once the original menu appears, tap Play Game > Adventure, test flying with a
+floating left thumb, simultaneous FIRE/JET, pause/resume, VIEW zoom and death
+respawn. Observe stability after Android app background/resume. Test the same
+APK on more than one phone/tablet screen size if available.
+
+**Validation gate:** Neither a successful Gradle build nor source inspection
+proves Phase 6 is final. The user must verify the actual menu, gameplay HUD,
+steering, scene rendering, pause/resume, and camera behavior on physical
+devices before we mark Phase 6 complete. CI remains disabled. The untouched
+desktop branch is `master`; `main` remains reserved for the completed
+Phase 7 Android release.

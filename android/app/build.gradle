@@ -83,7 +83,7 @@ android {
         }
         externalNativeBuild {
             cmake {
-                arguments '-DANDROID_STL=c++_shared'
+                arguments '-DANDROID_STL=c++_shared', '-DNANOSAUR_ENGINE_PROBE=' + (providers.gradleProperty('engineProbe').map { it.toBoolean() }.getOrElse(false) ? 'ON' : 'OFF')
             }
         }
     }

@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.22.1)
 project(Nanosaur2AndroidBootstrap LANGUAGES C CXX)
+set(CMAKE_C_STANDARD 17)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+option(NANOSAUR_ENGINE_PROBE "Compile original Nanosaur game source without linking into the preview" OFF)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -44,3 +47,18 @@ target_include_directories(main PRIVATE "${GAME_ROOT}/Source/Headers")
 find_library(GLES3_LIB GLESv3 REQUIRED)
 find_library(LOG_LIB log REQUIRED)
 target_link_libraries(main PRIVATE SDL3::SDL3 ${GLES3_LIB} ${LOG_LIB})
+
+# Compile-only audit of the original game engine for Android. Keeps current
+# working preview untouched. The engine is NOT linked or executed until its
+# desktop OpenGL dependencies are successfully ported.
+if(NANOSAUR_ENGINE_PROBE)
+    file(GLOB_RECURSE NANOSAUR_ENGINE_SOURCES CONFIGURE_DEPENDS
+        "${GAME_ROOT}/Source/*.c"
+        "${GAME_ROOT}/Source/*.cpp")
+    list(FILTER NANOSAUR_ENGINE_SOURCES EXCLUDE REGEX "/Source/Boot[.]cpp$")
+    add_library(nanosaur-engine-probe OBJECT ${NANOSAUR_ENGINE_SOURCES})
+    target_include_directories(nanosaur-engine-probe PRIVATE "${GAME_ROOT}/Source/Headers")
+    target_link_libraries(nanosaur-engine-probe PRIVATE SDL3::SDL3 Pomme)
+    target_compile_definitions(nanosaur-engine-probe PRIVATE GL_SILENCE_DEPRECATION)
+    add_dependencies(main nanosaur-engine-probe)
+endif()

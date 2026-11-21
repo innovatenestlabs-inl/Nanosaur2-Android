@@ -86,7 +86,16 @@ target_link_libraries(main PRIVATE Pomme)
 target_include_directories(main PRIVATE "${GAME_ROOT}/Source/Headers")
 find_library(GLES3_LIB GLESv3 REQUIRED)
 find_library(LOG_LIB log REQUIRED)
-target_link_libraries(main PRIVATE SDL3::SDL3 ${GLES3_LIB} ${LOG_LIB})
+# The preview uses native GLES3 shaders. The original game MUST route all
+# desktop OpenGL entry points (including glGetError/glGetString) through
+# GL4ES's compatibility shim. Linking native libGLESv3 directly into the
+# gameplay target allows symbols like glGetError to bypass GL4ES and read
+# an unrelated native GLES error state.
+if(NANOSAUR_GAMEPLAY_PROBE)
+    target_link_libraries(main PRIVATE SDL3::SDL3 ${LOG_LIB})
+else()
+    target_link_libraries(main PRIVATE SDL3::SDL3 ${GLES3_LIB} ${LOG_LIB})
+endif()
 
 # Compile-only audit of the original game engine for Android. Keeps current
 # working preview untouched. The engine is NOT linked or executed until its

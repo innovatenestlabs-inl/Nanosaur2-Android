@@ -6,3 +6,5 @@
 /local.properties
 *.iml
 /gl4es/
+
+/nanosaur-gl-error.log

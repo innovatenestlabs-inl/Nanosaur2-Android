@@ -5,6 +5,12 @@ on:
     branches: [android-port]
   workflow_dispatch:
 
+# Multiple experimental commits otherwise trigger several concurrent SDK
+# downloads. Keep the newest android-port validation and cancel obsolete runs.
+concurrency:
+  group: nanosaur-android-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   assemble:
     runs-on: ubuntu-latest

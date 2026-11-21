@@ -410,3 +410,43 @@ direct-to-Level-1 flow, add `-QuickPlay`. Neither option is enabled in
 the default Android build. The output `android/nanosaur-local-test.log`
 is ignored by Git. The command deliberately aborts if build/install
 fails, preventing an old APK from being mistaken for a successful build.
+
+## Phase 6 final control-direction and compact actions update
+
+The Android on-screen controls are now designed for a less cluttered view.
+
+- Left floating joystick: **drag UP to climb, DOWN to descend**, left/right
+  to turn, with the existing dead zone and smoothing.
+- Compact right controls (default): **FIRE**, **JET** and **MORE**.
+- Tap **MORE** to reveal **NEXT**, **DROP**, **VIEW** and **PAUSE** while
+  keeping FIRE and JET visible. Tap **LESS** to collapse those extras.
+- A MORE/LESS finger is consumed until released. Dragging it across another
+  action must not fire or change cameras.
+- Expanded controls are disabled as touch targets when collapsed, not only
+  hidden visually.
+- The panel collapses again when entering gameplay or after a focus reset.
+
+### Android acceptance checks (local only)
+
+```powershell
+cd E:\Projects\Game\Nanosaur2-Android
+git checkout android-port
+git pull origin android-port
+powershell -ExecutionPolicy Bypass -File .\android\test-game.ps1 -SkipIntro
+```
+
+From the title menu, start Adventure. During flight:
+
+1. Drag thumb **up**: dinosaur should climb. Drag **down**: it should descend.
+2. Verify FIRE + steering and JET + steering work with two fingers.
+3. Confirm only FIRE/JET/MORE show when initially playing.
+4. Tap MORE and confirm NEXT/DROP/VIEW/PAUSE become available.
+5. Tap LESS: secondary buttons disappear *and stop accepting taps*.
+6. Expand again, PAUSE, then resume through the original pause menu.
+7. Verify no clipped buttons, lost touches, camera disappearance, new GL errors
+   or stuck controls after background/resume.
+
+This change has not yet been compiled or tested on a physical Android device.
+Do not declare Phase 6 complete until the above checks pass. No GitHub Actions
+were reintroduced. `master` is the untouched desktop fork; release `main`
+remains reserved for the successful Phase 7 handoff.

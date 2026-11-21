@@ -1576,9 +1576,38 @@ void OGL_RAMTextureHasChanged(GLuint textureName, short width, short height, uin
 
 void OGL_Texture_SetOpenGLTexture(GLuint textureName)
 {
+#ifdef __ANDROID__
+    // GL errors remain sticky until queried. A previous GLES/GL4ES call can
+    // report its error at the NEXT check, incorrectly blaming glBindTexture.
+    // Log the pre-existing error separately before testing this operation.
+    GLenum previousError = glGetError();
+    if (previousError != GL_NO_ERROR)
+    {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION,
+            "Nanosaur GL4ES: pre-existing GL error 0x%04x before texture bind (id=%u)",
+            (unsigned) previousError, (unsigned) textureName);
+    }
+#endif
+
 	glBindTexture(GL_TEXTURE_2D, textureName);
+
+#ifdef __ANDROID__
+    GLenum bindError = glGetError();
+    if (bindError != GL_NO_ERROR)
+    {
+        // Do not silently ignore a true texture-bind error: log the specific
+        // operation and terminate with a precise diagnostic.
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION,
+            "Nanosaur GL4ES: glBindTexture(GL_TEXTURE_2D, %u) failed: 0x%04x",
+            (unsigned) textureName, (unsigned) bindError);
+        DoFatalAlert("Android GL4ES texture binding failed: ID=%u, GL error 0x%04x",
+                     (unsigned) textureName, (unsigned) bindError);
+        return;
+    }
+#else
 	if (OGL_CheckError())
 		DoFatalAlert("OGL_Texture_SetOpenGLTexture: glBindTexture failed!");
+#endif
 
 	OGL_EnableTexture2D();
 }

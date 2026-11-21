@@ -28,15 +28,15 @@ jobs:
         with:
           packages: 'platforms;android-35 build-tools;35.0.0 cmake;3.22.1 ndk;27.2.12479018'
 
-      - name: Clone pinned SDL3
-        run: |
-          git clone --depth 1 --branch release-3.2.8 https://github.com/libsdl-org/SDL.git android/SDL
-          test "$(git -C android/SDL rev-parse HEAD)" = "f6864924f76e1a0b4abaefc76ae2ed22b1a8916e"
-
       - name: Set up Gradle 8.9
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
+
+      - name: Clone pinned SDL3
+        run: |
+          git clone --depth 1 --branch release-3.2.8 https://github.com/libsdl-org/SDL.git android/SDL
+          test "$(git -C android/SDL rev-parse HEAD)" = "f6864924f76e1a0b4abaefc76ae2ed22b1a8916e"
 
       - name: Assemble debug APK
         working-directory: android

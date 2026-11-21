@@ -1,0 +1,1 @@
+E:\Projects\Game\Nanosaur2-Android\android\app\build\intermediates\cxx\Debug\52404a1q\obj\arm64-v8a

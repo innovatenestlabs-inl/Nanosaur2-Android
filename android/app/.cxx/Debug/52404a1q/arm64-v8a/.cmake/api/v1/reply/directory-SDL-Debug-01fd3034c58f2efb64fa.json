@@ -1,0 +1,14 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : [],
+		"nodes" : []
+	},
+	"installers" : [],
+	"paths" : 
+	{
+		"build" : "SDL",
+		"source" : "E:/Projects/Game/Nanosaur2-Android/android/SDL"
+	}
+}

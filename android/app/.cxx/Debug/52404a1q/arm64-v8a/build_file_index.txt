@@ -1,0 +1,2 @@
+E:\Projects\Game\Nanosaur2-Android\android\app\src\main\cpp\CMakeLists.txt
+E:\Projects\Game\Nanosaur2-Android\android\SDL\CMakeLists.txt

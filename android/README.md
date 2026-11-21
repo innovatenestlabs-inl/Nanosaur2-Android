@@ -450,3 +450,36 @@ This change has not yet been compiled or tested on a physical Android device.
 Do not declare Phase 6 complete until the above checks pass. No GitHub Actions
 were reintroduced. `master` is the untouched desktop fork; release `main`
 remains reserved for the successful Phase 7 handoff.
+
+## Latest local control/release hardening (Phase 7 candidate)
+
+**Current Android control layout (supersedes older diagrams above):**
+
+- Floating flight joystick: **RIGHT** lower half. Up climbs, down descends.
+- Action buttons: **LEFT** half. FIRE and JET always visible.
+- MORE/LESS on the left reveals/hides NEXT, DROP, VIEW, PAUSE.
+- FIRE's default Sonic Scream weapon now produces a weak shot on **quick
+  tap and release**. Holding to charge before release still works.
+- Intro/continue prompts now read TAP ANYWHERE on Android. SDL finger-down
+  events advance those screens without depending solely on touch-to-mouse.
+
+Start normal Android gameplay locally:
+
+```powershell
+cd E:\Projects\Game\Nanosaur2-Android
+git checkout android-port
+git pull origin android-port
+powershell -ExecutionPolicy Bypass -File .\android\test-game.ps1 -SkipIntro
+```
+
+Use `powershell -ExecutionPolicy Bypass -File .\android\verify-phase7.ps1`
+to build, install and perform APK-integrity/runtime preflight. The report
+`android/phase7-local-report.json` must not be treated as evidence of
+all levels or production-readiness without the manual QA in
+[`PHASE7_ACCEPTANCE.md`](PHASE7_ACCEPTANCE.md).
+
+**Production gate:** `main` is *not* created yet. The user must verify
+Adventure levels 1–3, controls, save/load, audio and multi-device stability.
+The original game's current noncommercial licenses prohibit an INL commercial
+Play Store release without separately obtained rights. `master` is untouched,
+and GitHub Actions remain removed.

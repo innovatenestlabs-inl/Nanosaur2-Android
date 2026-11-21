@@ -209,14 +209,26 @@ static void PlayGame_Adventure(void)
 
 	        /* LOAD ALL OF THE ART & STUFF */
 
+#ifdef __ANDROID__
+        SDL_Log("Nanosaur Android level: InitLevel started (level=%d)", gLevelNum);
+#endif
 		InitLevel();
+#ifdef __ANDROID__
+        SDL_Log("Nanosaur Android level: InitLevel complete");
+#endif
 
 
 			/***********/
 	        /* PLAY IT */
 	        /***********/
 
+#ifdef __ANDROID__
+        SDL_Log("Nanosaur Android level: PlayLevel started");
+#endif
 		PlayLevel();
+#ifdef __ANDROID__
+        SDL_Log("Nanosaur Android level: PlayLevel returned");
+#endif
 
 		gPlayingFromSavedGame = false;		// once we've completed a level after restoring, we're not really playing from a saved game anymore
 
@@ -1054,6 +1066,22 @@ unsigned long	someLong;
 	LoadGlobalAssets();
 #ifdef __ANDROID__
 	SDL_Log("Nanosaur Android stage: Global assets ready");
+#endif
+
+#if defined(__ANDROID__) && defined(NANOSAUR_ANDROID_QUICKPLAY)
+    // Phase 5 diagnostic: load the original single-player Adventure Level 1
+    // directly. This deliberately skips the legal/intro/menu presentation
+    // until the first rendered gameplay scene is proven on a device.
+    gNumPlayers = 1;
+    gVSMode = VS_MODE_NONE;
+    gLevelNum = LEVEL_NUM_ADVENTURE1;
+    gTimeDemo = false;
+    gSkipLevelIntro = true;
+    gPlayingFromSavedGame = false;
+    SDL_Log("Nanosaur Android QUICKPLAY: starting Adventure Level 1");
+    PlayGame_Adventure();
+    SDL_Log("Nanosaur Android QUICKPLAY: Adventure returned");
+    return;
 #endif
 
 

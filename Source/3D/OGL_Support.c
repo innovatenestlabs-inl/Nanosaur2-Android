@@ -348,6 +348,13 @@ GLint			maxTexSize;
 	if (!gAGLContext)
 		DoFatalAlert(SDL_GetError());
 
+#ifdef __ANDROID__
+    // Android only: GL4ES translates the original desktop OpenGL calls.
+    // SDL_GL_CreateContext makes the new GLES context current.
+    extern void NanosaurAndroidInitializeGL4ES(SDL_Window* window);
+    NanosaurAndroidInitializeGL4ES(gSDLWindow);
+#endif
+
 	GAME_ASSERT(glGetError() == GL_NO_ERROR);
 
 

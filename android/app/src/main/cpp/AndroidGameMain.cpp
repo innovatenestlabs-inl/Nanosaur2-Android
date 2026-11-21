@@ -73,7 +73,8 @@ int main(int, char**)
         const std::string systemDir = std::string(storage) + "/Data/System";
         gDataSpec = Pomme::Files::HostPathToFSSpec(::fs::path(systemDir));
         SDL_Log("Android original game entry initialized; starting GameMain");
-        initialize_gl4es();
+        // OGL_CreateDrawContext initializes GL4ES after SDL makes the GLES
+        // context current. Calling it here would be too early.
         GameMain();
         close_gl4es();
         ShutdownNativeGame();

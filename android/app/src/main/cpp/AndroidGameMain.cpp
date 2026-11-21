@@ -39,6 +39,9 @@ int main(int, char**)
     SDL_SetAppMetadata("Nanosaur II Android Engine Test", "0.3.0-dev",
                        "com.innovatenestlabs.nanosaur2");
 
+    // SDL generates mouse clicks from finger taps so the original menu
+    // remains navigable on a touchscreen without a gamepad.
+    SDL_SetHint(SDL_HINT_TOUCH_MOUSE_EVENTS, "1");
     if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_EVENTS | SDL_INIT_GAMEPAD)) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Game SDL init: %s", SDL_GetError());
         return 1;

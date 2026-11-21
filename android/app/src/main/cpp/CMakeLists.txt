@@ -72,8 +72,10 @@ if(NANOSAUR_GAMEPLAY_PROBE)
     add_library(main SHARED AndroidGameMain.cpp AndroidGL4ESStubs.c AndroidTouchControls.c PommeResources.cpp ${NANOSAUR_GAME_SOURCES})
     target_include_directories(main PRIVATE "${CMAKE_CURRENT_LIST_DIR}" "${GAME_ROOT}/Source/Headers")
     target_compile_definitions(main PRIVATE GL_SILENCE_DEPRECATION)
-    # Development-only route to the first original 3D level; not a release mode.
-    option(NANOSAUR_ANDROID_QUICKPLAY "Skip Android intro/menu and enter original Level 1" ON)
+    # Mobile HUD/input always enabled in gameplay, including normal menu startup.
+    target_compile_definitions(main PRIVATE NANOSAUR_ANDROID_TOUCH_CONTROLS=1)
+    # Opt-in debug shortcut only. Normal Android startup shows the main menu.
+    option(NANOSAUR_ANDROID_QUICKPLAY "Debug: skip menu and load level 1 directly" OFF)
     if(NANOSAUR_ANDROID_QUICKPLAY)
         target_compile_definitions(main PRIVATE NANOSAUR_ANDROID_QUICKPLAY=1)
     endif()

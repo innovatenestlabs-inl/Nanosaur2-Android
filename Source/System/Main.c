@@ -540,6 +540,9 @@ OGLSetupInputType	viewDef;
 
 static void PlayLevel(void)
 {
+#ifdef __ANDROID__
+    extern void NanosaurAndroidTouchSetGameplayActive(bool active);
+#endif
 float	fps;
 #ifdef __ANDROID__
     bool loggedFirstRenderedFrame = false;
@@ -561,7 +564,9 @@ float	fps;
 
 
 	GrabMouse(true);
-
+#ifdef __ANDROID__
+    NanosaurAndroidTouchSetGameplayActive(true);
+#endif
 
 		/******************/
 		/* MAIN GAME LOOP */
@@ -702,6 +707,9 @@ float	fps;
 		}
 	}
 
+#ifdef __ANDROID__
+    NanosaurAndroidTouchSetGameplayActive(false);
+#endif
 	GrabMouse(false);
 
 	if (gGammaFadeFrac > 0)											// only fade out if we haven't called MakeFadeEvent(kFadeFlags_Out) already
@@ -747,7 +755,7 @@ static void ShowTimeDemoResults(int numFrames, float numSeconds, float averageFP
 
 static void DrawLevelCallback(void)
 {
-#if defined(__ANDROID__) && defined(NANOSAUR_ANDROID_QUICKPLAY)
+#if defined(__ANDROID__) && defined(NANOSAUR_ANDROID_TOUCH_CONTROLS)
     extern void NanosaurAndroidDrawTouchHUD(void);
 #endif
 
@@ -785,7 +793,7 @@ static void DrawLevelCallback(void)
 	}
 
 	DrawObjects();
-#if defined(__ANDROID__) && defined(NANOSAUR_ANDROID_QUICKPLAY)
+#if defined(__ANDROID__) && defined(NANOSAUR_ANDROID_TOUCH_CONTROLS)
     // Overlay controls after 3D objects, before the SDL buffer swap.
     // No desktop rendering is affected.
     NanosaurAndroidDrawTouchHUD();
@@ -1103,7 +1111,9 @@ unsigned long	someLong;
 #endif
 
 
-#if !SKIPFLUFF
+// Mobile starts at the original menu; the intro/cutscene remains accessible
+// through the game's Info/Story menu instead of delaying every launch.
+#if !SKIPFLUFF && !defined(__ANDROID__)
 		/* SHOW TITLES */
 
 #ifdef __ANDROID__

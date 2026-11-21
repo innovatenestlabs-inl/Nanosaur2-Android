@@ -4,7 +4,7 @@
 
 #include "game.h"
 
-#if defined(__ANDROID__) && defined(NANOSAUR_ANDROID_QUICKPLAY)
+#if defined(__ANDROID__) && defined(NANOSAUR_ANDROID_TOUCH_CONTROLS)
 extern void NanosaurAndroidTouchEvent(const SDL_TouchFingerEvent* finger, bool released);
 extern float NanosaurAndroidTouchNeedAnalog(int need);
 extern void NanosaurAndroidTouchReset(void);
@@ -130,7 +130,7 @@ void InvalidateAllInputs(void)
 	SDL_memset(gNeedStates, KEYSTATE_IGNOREHELD, NUM_CONTROL_NEEDS);
 	SDL_memset(gKeyboardStates, KEYSTATE_IGNOREHELD, SDL_SCANCODE_COUNT);
 	SDL_memset(gMouseButtonStates, KEYSTATE_IGNOREHELD, NUM_SUPPORTED_MOUSE_BUTTONS);
-#if defined(__ANDROID__) && defined(NANOSAUR_ANDROID_QUICKPLAY)
+#if defined(__ANDROID__) && defined(NANOSAUR_ANDROID_TOUCH_CONTROLS)
     NanosaurAndroidTouchReset();
 #endif
 
@@ -209,7 +209,7 @@ static void UpdateInputNeeds(void)
 		}
 
 		pressed |= gMouseButtonStates[kb->mouseButton] & KEYSTATE_ACTIVE_BIT;
-#if defined(__ANDROID__) && defined(NANOSAUR_ANDROID_QUICKPLAY)
+#if defined(__ANDROID__) && defined(NANOSAUR_ANDROID_TOUCH_CONTROLS)
         pressed |= NanosaurAndroidTouchNeedAnalog(need) > 0.0f;
 #endif
 
@@ -315,7 +315,7 @@ void DoSDLMaintenance(void)
 	{
 		switch (event.type)
 		{
-#if defined(__ANDROID__) && defined(NANOSAUR_ANDROID_QUICKPLAY)
+#if defined(__ANDROID__) && defined(NANOSAUR_ANDROID_TOUCH_CONTROLS)
             case SDL_EVENT_FINGER_DOWN:
             case SDL_EVENT_FINGER_MOTION:
                 NanosaurAndroidTouchEvent(&event.tfinger, false);
@@ -514,7 +514,7 @@ float GetNeedAnalogValue(int needID, int playerID)
 	{
 		if (gNeedStates[needID] & KEYSTATE_ACTIVE_BIT)
 		{
-#if defined(__ANDROID__) && defined(NANOSAUR_ANDROID_QUICKPLAY)
+#if defined(__ANDROID__) && defined(NANOSAUR_ANDROID_TOUCH_CONTROLS)
             float touchAnalog = NanosaurAndroidTouchNeedAnalog(needID);
             if (touchAnalog > 0.0f)
                 return touchAnalog;

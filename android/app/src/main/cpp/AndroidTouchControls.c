@@ -8,7 +8,7 @@
 #include "game.h"
 #include <math.h>
 
-#if defined(__ANDROID__) && defined(NANOSAUR_ANDROID_QUICKPLAY)
+#if defined(__ANDROID__) && defined(NANOSAUR_ANDROID_TOUCH_CONTROLS)
 
 #define MAX_ANDROID_TOUCH_FINGERS 10
 typedef struct

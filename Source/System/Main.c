@@ -747,6 +747,9 @@ static void ShowTimeDemoResults(int numFrames, float numSeconds, float averageFP
 
 static void DrawLevelCallback(void)
 {
+#if defined(__ANDROID__) && defined(NANOSAUR_ANDROID_QUICKPLAY)
+    extern void NanosaurAndroidDrawTouchHUD(void);
+#endif
 
 	if (IsStereo())
 	{
@@ -782,6 +785,11 @@ static void DrawLevelCallback(void)
 	}
 
 	DrawObjects();
+#if defined(__ANDROID__) && defined(NANOSAUR_ANDROID_QUICKPLAY)
+    // Overlay controls after 3D objects, before the SDL buffer swap.
+    // No desktop rendering is affected.
+    NanosaurAndroidDrawTouchHUD();
+#endif
 }
 
 

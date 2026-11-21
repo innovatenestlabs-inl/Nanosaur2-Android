@@ -323,6 +323,12 @@ void DoSDLMaintenance(void)
             case SDL_EVENT_FINGER_UP:
                 NanosaurAndroidTouchEvent(&event.tfinger, true);
                 break;
+            case SDL_EVENT_WINDOW_FOCUS_LOST:
+            case SDL_EVENT_WILL_ENTER_BACKGROUND:
+                // Android lifecycle: release synthetic controls when
+                // system UI/notifications or another activity takes focus.
+                NanosaurAndroidTouchReset();
+                break;
 #endif
 			case SDL_EVENT_QUIT:
 			case SDL_EVENT_WINDOW_CLOSE_REQUESTED:

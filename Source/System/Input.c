@@ -4,6 +4,12 @@
 
 #include "game.h"
 
+#if defined(__ANDROID__) && defined(NANOSAUR_ANDROID_QUICKPLAY)
+extern void NanosaurAndroidTouchEvent(const SDL_TouchFingerEvent* finger, bool released);
+extern float NanosaurAndroidTouchNeedAnalog(int need);
+extern void NanosaurAndroidTouchReset(void);
+#endif
+
 /***************/
 /* CONSTANTS   */
 /***************/
@@ -124,6 +130,9 @@ void InvalidateAllInputs(void)
 	SDL_memset(gNeedStates, KEYSTATE_IGNOREHELD, NUM_CONTROL_NEEDS);
 	SDL_memset(gKeyboardStates, KEYSTATE_IGNOREHELD, SDL_SCANCODE_COUNT);
 	SDL_memset(gMouseButtonStates, KEYSTATE_IGNOREHELD, NUM_SUPPORTED_MOUSE_BUTTONS);
+#if defined(__ANDROID__) && defined(NANOSAUR_ANDROID_QUICKPLAY)
+    NanosaurAndroidTouchReset();
+#endif
 
 	for (int i = 0; i < MAX_LOCAL_PLAYERS; i++)
 	{
@@ -200,6 +209,9 @@ static void UpdateInputNeeds(void)
 		}
 
 		pressed |= gMouseButtonStates[kb->mouseButton] & KEYSTATE_ACTIVE_BIT;
+#if defined(__ANDROID__) && defined(NANOSAUR_ANDROID_QUICKPLAY)
+        pressed |= NanosaurAndroidTouchNeedAnalog(need) > 0.0f;
+#endif
 
 		UpdateKeyState(&gNeedStates[need], pressed);
 	}
@@ -303,6 +315,15 @@ void DoSDLMaintenance(void)
 	{
 		switch (event.type)
 		{
+#if defined(__ANDROID__) && defined(NANOSAUR_ANDROID_QUICKPLAY)
+            case SDL_EVENT_FINGER_DOWN:
+            case SDL_EVENT_FINGER_MOTION:
+                NanosaurAndroidTouchEvent(&event.tfinger, false);
+                break;
+            case SDL_EVENT_FINGER_UP:
+                NanosaurAndroidTouchEvent(&event.tfinger, true);
+                break;
+#endif
 			case SDL_EVENT_QUIT:
 			case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
 				CleanQuit();			// throws Pomme::QuitRequest
@@ -487,6 +508,11 @@ float GetNeedAnalogValue(int needID, int playerID)
 	{
 		if (gNeedStates[needID] & KEYSTATE_ACTIVE_BIT)
 		{
+#if defined(__ANDROID__) && defined(NANOSAUR_ANDROID_QUICKPLAY)
+            float touchAnalog = NanosaurAndroidTouchNeedAnalog(needID);
+            if (touchAnalog > 0.0f)
+                return touchAnalog;
+#endif
 			return 1.0f;
 		}
 	}

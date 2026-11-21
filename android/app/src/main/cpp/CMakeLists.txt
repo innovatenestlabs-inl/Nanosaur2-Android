@@ -69,7 +69,7 @@ if(NANOSAUR_GAMEPLAY_PROBE)
         "${GAME_ROOT}/Source/*.c"
         "${GAME_ROOT}/Source/*.cpp")
     list(FILTER NANOSAUR_GAME_SOURCES EXCLUDE REGEX "/Source/Boot[.]cpp$")
-    add_library(main SHARED AndroidGameMain.cpp AndroidGL4ESStubs.c PommeResources.cpp ${NANOSAUR_GAME_SOURCES})
+    add_library(main SHARED AndroidGameMain.cpp AndroidGL4ESStubs.c AndroidTouchControls.c PommeResources.cpp ${NANOSAUR_GAME_SOURCES})
     target_include_directories(main PRIVATE "${CMAKE_CURRENT_LIST_DIR}" "${GAME_ROOT}/Source/Headers")
     target_compile_definitions(main PRIVATE GL_SILENCE_DEPRECATION)
     # Development-only route to the first original 3D level; not a release mode.

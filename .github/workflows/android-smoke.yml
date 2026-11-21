@@ -72,6 +72,12 @@ jobs:
         continue-on-error: true
         run: gradle -p android :app:assembleDebug -PfullGameAssets=true -PrendererProbe=true --stacktrace
 
+      # First attempt to link the full original engine with GL4ES. This is
+      # expected to reveal unresolved desktop symbols until port work is done.
+      - name: Link original gameplay engine (experimental)
+        continue-on-error: true
+        run: gradle -p android :app:assembleDebug -PfullGameAssets=true -PgameplayProbe=true --stacktrace
+
       - name: Upload smoke-test APK
         uses: actions/upload-artifact@v4
         with:

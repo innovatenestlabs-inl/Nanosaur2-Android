@@ -655,6 +655,14 @@ float	fps;
 
 		if (IsNeedDown(kNeed_UIPause, ANY_PLAYER))					// do regular pause mode
 		{
+#if defined(__ANDROID__) && defined(NANOSAUR_ANDROID_TOUCH_CONTROLS)
+            // The game's pause menu consumes touch as mouse input, and the
+            // finger-up may arrive while game controls are suspended.
+            // Clear held control touches before entering the modal menu to
+            // prevent stuck fire/steer or immediately re-pausing on resume.
+            extern void NanosaurAndroidTouchReset(void);
+            NanosaurAndroidTouchReset();
+#endif
 			DoPaused();
 		}
 

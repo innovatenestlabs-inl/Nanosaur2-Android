@@ -340,6 +340,26 @@ static void AndroidHudCircle(float x, float y, float r, float red, float green, 
     glEnd();
 }
 
+// Render an actual directional arrow with GL geometry rather than a text label.
+// Local coordinates are corrected for the landscape screen aspect ratio,
+// so the arrowhead and shaft keep their intended proportions.
+static void AndroidHudArrow(float x, float y, float dx, float dy, bool pressed)
+{
+    const float aspect = gGameWindowWidth > 0
+        ? (float) gGameWindowHeight / (float) gGameWindowWidth : .5625f;
+    const float forward[] = { .045f, .004f, .004f, -.032f, -.032f, .004f, .004f };
+    const float side[] = { 0.0f, .032f, .013f, .013f, -.013f, -.013f, -.032f };
+    glColor4f(pressed ? 1.0f : .90f, pressed ? 1.0f : .95f, 1.0f, 1.0f);
+    glBegin(GL_TRIANGLE_FAN);
+    for (int i = 0; i < 7; ++i)
+    {
+        const float tx = dx * forward[i] - dy * side[i];
+        const float ty = dy * forward[i] + dx * side[i];
+        glVertex2f(x + tx * aspect, y + ty);
+    }
+    glEnd();
+}
+
 static void AndroidHudLabel(const char* label, float x, float y)
 {
     // The original game's debug font already supports a virtual 640x480
@@ -387,6 +407,16 @@ void NanosaurAndroidDrawTouchHUD(void)
                              pressed > 0 ? .70f : .27f,
                              pressed > 0 ? .35f : .45f,
                              pressed > 0 ? .85f : .52f);
+            float dx = 0.0f, dy = 0.0f;
+            switch (button->need)
+            {
+                case kNeed_PitchUp: dy = -1.0f; break;
+                case kNeed_PitchDown: dy = 1.0f; break;
+                case kNeed_YawLeft: dx = -1.0f; break;
+                case kNeed_YawRight: dx = 1.0f; break;
+                default: break;
+            }
+            AndroidHudArrow(button->x, button->y, dx, dy, pressed > 0.0f);
         }
     }
     else
@@ -457,11 +487,8 @@ void NanosaurAndroidDrawTouchHUD(void)
                     gToggleCenterX - .025f, gToggleCenterY - .014f);
     AndroidHudLabel(gAndroidUseDpad ? "STICK" : "ARROWS",
                     gModeCenterX - .035f, gModeCenterY - .014f);
-    if (gAndroidUseDpad)
-        for (size_t i = 0; i < SDL_arraysize(gAndroidDpad); ++i)
-            AndroidHudLabel(gAndroidDpad[i].label,
-                            gAndroidDpad[i].x - .025f,
-                            gAndroidDpad[i].y - .014f);
+    // D-pad direction glyphs are rendered by AndroidHudArrow above,
+    // using vector geometry rather than the game's limited text font.
 }
 
 #endif

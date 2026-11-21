@@ -162,7 +162,7 @@ progression; a log line alone does not certify a complete level.
 ## Dual touch control acceptance (2026-11-21)
 - [ ] Right top "ARROWS" switches to four direction buttons; "STICK" switches back
 - [ ] Default joystick: up climbs, down dives, left/right turn; release neutral
-- [ ] D-pad: UP/DN/LEFT/RIGHT directions work and are not reversed
+- [ ] D-pad: visibly drawn arrowheads ↑ ↓ ← → point in the correct directions; tapping each drives the corresponding direction
 - [ ] D-pad: holding two arrows simultaneously gives diagonal steering
 - [ ] Switching modes while touching controls does not cause stuck input
 - [ ] FIRE and JET remain visible, responsive and usable with either controller
@@ -170,3 +170,7 @@ progression; a log line alone does not certify a complete level.
 - [ ] MORE/LESS and mode switches do not inadvertently activate gameplay buttons
 - [ ] Screen cutouts, landscape aspect ratios, 3D scene and HUD remain readable
 - [ ] Pause/resume and Android app background/foreground clear touch input safely
+
+## D-pad visual correction (2026-11-21)
+- Direction labels are now vector-drawn arrow icons instead of textual UP/DN/LEFT/RIGHT. Rendering uses the existing OpenGL/GL4ES HUD pass, with screen aspect correction. Touch hit boxes and gameplay direction mapping are unchanged.
+- Requires local native compile and on-device visual/gameplay verification before production signoff.

@@ -57,7 +57,7 @@ static float AndroidLimit(float value, float lo, float hi)
 
 static float AndroidSteerCurve(float normalized)
 {
-    const float deadzone = .12f;
+    const float deadzone = .14f; // Less jitter around neutral on phones
     const float sign = normalized < 0.0f ? -1.0f : 1.0f;
     float mag = fabsf(normalized);
     if (mag <= deadzone)
@@ -154,8 +154,8 @@ void NanosaurAndroidTouchTick(void)
             if (gTouches[i].active && gTouches[i].id == gSteeringFinger)
             {
                 // X/Y radii account for a landscape phone's aspect ratio.
-                targetYaw = AndroidSteerCurve((gTouches[i].x - gStickCenterX) / .11f);
-                targetPitch = AndroidSteerCurve((gTouches[i].y - gStickCenterY) / .21f);
+                targetYaw = AndroidSteerCurve((gTouches[i].x - gStickCenterX) / .15f);
+                targetPitch = AndroidSteerCurve((gTouches[i].y - gStickCenterY) / .25f);
                 break;
             }
     }
@@ -164,7 +164,7 @@ void NanosaurAndroidTouchTick(void)
     float dt = gLastSteerTick ? (float)(now - gLastSteerTick) * .001f : .016f;
     gLastSteerTick = now;
     dt = AndroidLimit(dt, .001f, .06f);
-    const float alpha = 1.0f - expf(-22.0f * dt);
+    const float alpha = 1.0f - expf(-17.0f * dt);
     gSmoothYaw += (targetYaw - gSmoothYaw) * alpha;
     gSmoothPitch += (targetPitch - gSmoothPitch) * alpha;
     if (!gSteeringFingerActive)
@@ -185,9 +185,9 @@ static const struct AndroidActionButton {
     {.13f, .81f, .105f, .13f, kNeed_Jetpack, "JET", false},
     // Secondary action buttons are deliberately kept away from MORE/LESS.
     {.37f, .16f, .115f, .10f, kNeed_NextWeapon, "NEXT", true},
-    {.37f, .39f, .115f, .09f, kNeed_Drop, "DROP", true},
+    {.37f, .39f, .115f, .09f, kNeed_Drop, "DROP", false},
     {.13f, .39f, .105f, .09f, kNeed_CameraMode, "VIEW", true},
-    {.37f, .59f, .115f, .09f, kNeed_UIPause, "PAUSE", true}
+    {.37f, .59f, .115f, .09f, kNeed_UIPause, "PAUSE", false}
 };
 
 float NanosaurAndroidTouchNeedAnalog(int need)

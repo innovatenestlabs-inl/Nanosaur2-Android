@@ -65,7 +65,11 @@ short	i, w;
 			if (gVSMode == VS_MODE_BATTLE)									// more lives in battle mode
 				gPlayerInfo[i].numFreeLives		= 5;
 			else
-				gPlayerInfo[i].numFreeLives		= 3;
+				#ifdef __ANDROID__
+            gPlayerInfo[i].numFreeLives      = 5; // Beginner-friendly Android adventure
+#else
+            gPlayerInfo[i].numFreeLives      = 3;
+#endif
 
 			gPlayerInfo[i].health 			= 1.0;
 

@@ -47,7 +47,7 @@ def stagePreviewAssets = tasks.register('stageNanosaurPreviewAssets', Copy) {
     from(file('../../LICENSE.md')) {
         into 'licenses'
     }
-    from(file('NOTICE-ANDROID.txt')) {
+    from(file('../NOTICE-ANDROID.txt')) {
         into 'licenses'
     }
     into(generatedAssetRoot)

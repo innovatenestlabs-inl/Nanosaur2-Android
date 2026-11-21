@@ -16,6 +16,15 @@ if (!originalLevelMap.isFile()) {
 // Experimental full-resource APK for later Pomme/game engine integration.
 // Default keeps the quick asset-preview build small and unchanged.
 def fullGameAssets = providers.gradleProperty('fullGameAssets').map { it.toBoolean() }.getOrElse(false)
+def gameplayBuild = providers.gradleProperty('gameplayProbe').map { it.toBoolean() }.getOrElse(false)
+// Prevent accidental shipping of the preview/smoke-test executable or a
+// gameplay APK without its original resources. Release remains unsigned
+// until the owner supplies proper signing and commercial distribution rights.
+def requestedRelease = gradle.startParameter.taskNames.any { it.toLowerCase(java.util.Locale.ROOT).contains('release') }
+if (requestedRelease && (!gameplayBuild || !fullGameAssets)) {
+    throw new GradleException('Refusing incomplete Nanosaur Android release: use -PgameplayProbe=true -PfullGameAssets=true')
+}
+
 def generatedAssetRoot = layout.buildDirectory.dir(
     fullGameAssets ? 'generated/nanosaur-full-assets' : 'generated/nanosaur-assets')
 

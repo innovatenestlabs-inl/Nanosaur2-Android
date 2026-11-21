@@ -83,6 +83,10 @@ const char* Localize(LocStrID stringID)
     // Display touch-first guidance instead of desktop keyboard/gamepad
     // prompts. The Android input layer also accepts finger-down in
     // cinematic/continue screens (not just mouse emulation).
+    if (stringID == STR_PRESS_ESC_TO_GO_BACK)
+        return "TAP BACK TO RETURN";
+    if (stringID == STR_CONNECT_1_CONTROLLER || stringID == STR_CONNECT_2_CONTROLLERS)
+        return "CONNECT GAMEPADS OR GO BACK";
     if (stringID == STR_PRESS_ANY_KEY || stringID == STR_PRESS_START
         || stringID == STR_PRESS_START_TO_CONTINUE
         || stringID == STR_PRESS_SPACE_TO_CONTINUE)

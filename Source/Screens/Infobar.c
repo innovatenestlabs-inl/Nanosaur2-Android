@@ -1445,6 +1445,15 @@ static void Infobar_DrawLives(void)
 {
 short	i;
 float	x = LIVES_X;
+#ifdef __ANDROID__
+    // Original life icons remain intact. A text count helps on small screens,
+    // where individual life icons can be difficult to distinguish.
+    char livesText[48];
+    SDL_snprintf(livesText, sizeof(livesText), "LIVES: %d",
+                 (int)gPlayerInfo[gCurrentSplitScreenPane].numFreeLives);
+    Atlas_DrawString(ATLAS_GROUP_FONT1, livesText,
+                     AnchorLeft(12), AnchorBottom(70), .32f, kTextMeshSmallCaps);
+#endif
 
 	for (i = 0; i < gPlayerInfo[gCurrentSplitScreenPane].numFreeLives; i++)
 	{

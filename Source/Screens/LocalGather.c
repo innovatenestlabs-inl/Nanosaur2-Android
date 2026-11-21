@@ -70,6 +70,15 @@ Boolean DoLocalGatherScreen(void)
 {
 	gNumControllersMissing = gNumPlayers;
 //	UnlockPlayerControllerMapping();
+#ifdef __ANDROID__
+    // Defensive escape for any call path that still opens the local gather
+    // screen. Touch-only Android cannot control two players simultaneously.
+    if (GetNumGamepad() < gNumPlayers)
+    {
+        SDL_Log("Nanosaur Android: returning to menu; multiplayer needs external gamepads");
+        return true;
+    }
+#endif
 
 	if (GetNumGamepad() >= gNumPlayers)
 	{

@@ -48,7 +48,12 @@ static MenuItem gMainMenuTree[] =
 #ifdef __ANDROID__
     {kMIPick, .rawText="LEVEL GUIDE", .next='guid'},
 #endif
+#ifndef __ANDROID__
+    // Two-controller local multiplayer is not yet supported by Android's
+    // single-player touch HUD. Hide the path instead of trapping players on
+    // the controller pairing screen.
 	{kMIPick, STR_NANO_VS_NANO,	.next='bttl' },
+#endif
 	{kMIPick, STR_SAVED_GAMES,	.next='load'},
 	{kMIPick, STR_BACK_SYMBOL,	.next='BACK' },
 

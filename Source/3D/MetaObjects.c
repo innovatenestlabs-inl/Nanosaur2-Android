@@ -590,6 +590,13 @@ Boolean		needNormals;
 			/**********************/
 			/* SETUP VERTEX ARRAY */
 			/**********************/
+#ifdef __ANDROID__
+    // Reset client/server texture selectors when entering geometry. The
+    // original renderer relies on the previous draw restoring GL_TEXTURE0,
+    // which is vulnerable to GL4ES multi-texture state divergence.
+    OGL_ActiveTextureUnit(GL_TEXTURE0);
+#endif
+
 
 #ifdef __ANDROID__
     // This is a diagnostic isolation point: glGetError() is sticky and the
@@ -597,7 +604,8 @@ Boolean		needNormals;
     // before this geometry draw started. Do NOT attribute it to a vertex API.
     {
         const GLenum pendingError = glGetError();
-        if (pendingError != GL_NO_ERROR)
+        static unsigned int reportedPendingVertexErrors = 0;
+        if (pendingError != GL_NO_ERROR && reportedPendingVertexErrors++ < 12)
             SDL_LogError(SDL_LOG_CATEGORY_APPLICATION,
                 "Nanosaur GL4ES vertex entry: pending error 0x%04x; points=%p colors=%p",
                 (unsigned) pendingError, (const void*) data->points,
@@ -966,7 +974,14 @@ uint32_t				matFlags;
 
 				/* ACTIVATE MATERIAL */
 
+#ifdef __ANDROID__
+        // GL4ES emulates fixed-function state on GLES2 and does not always
+        // preserve native desktop texture binding assumptions. Avoid skipping
+        // a bind based solely on the previous material pointer.
+        alreadySet = false;
+#else
 		alreadySet = (matObj == gMostRecentMaterial);
+#endif
 		if (alreadySet)												// see if even need to bother resetting this
 		{
 			OGL_EnableTexture2D();									// just make sure textures are on

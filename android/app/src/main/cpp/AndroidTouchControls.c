@@ -1,9 +1,9 @@
 // Temporary Nanosaur II Android touch controller for Phase 5 testing.
 // SDL touch coordinates are normalized to 0..1. Multi-finger controls:
-//   Lower-right: steering joystick (centre x=.77, y=.68)
-//   Lower-left: primary fire and jetpack; small drop button above.
-//   Upper-left: pause and a compact MORE toggle.
-//   Secondary NEXT/VIEW buttons appear only after MORE is tapped.
+//   Right: user-selectable floating joystick or four-arrow directional pad.
+//   Left: FIRE/JET remain visible; MORE reveals DROP, PAUSE, NEXT and VIEW.
+//   Top right: switch between joystick and directional arrows.
+// Keyboard and external gamepads remain independently supported.
 // Keyboard and gamepad inputs continue to work alongside these zones.
 #include "game.h"
 #include <math.h>
@@ -28,9 +28,14 @@ static bool gAndroidGameplayActive = false;
 static bool gAndroidActionsExpanded = false;
 static bool gToggleFingerHeld = false;
 static SDL_FingerID gToggleFingerID = 0;
+static bool gModeFingerHeld = false;
+static SDL_FingerID gModeFingerID = 0;
+static bool gAndroidUseDpad = false;
+static const float gModeCenterX = .78f, gModeCenterY = .13f;
+static const float gModeRadiusX = .105f, gModeRadiusY = .105f;
 
-// Compact single-handed layout keeps FIRE/JET/DROP/PAUSE available;
-// optional NEXT/VIEW controls appear only when MORE is expanded.
+// Only FIRE/JET are visible by default. Secondary actions expand on demand.
+// Movement mode persists while game input resets on pause/backgrounding.
 static const float gToggleCenterX = .34f;
 static const float gToggleCenterY = .14f;
 static const float gToggleRadiusX = .072f;
@@ -82,17 +87,39 @@ void NanosaurAndroidTouchEvent(const SDL_TouchFingerEvent* finger, bool released
             break;
         }
 
-    // Consume the MORE/LESS finger for its entire lifetime; it must never
-    // accidentally activate VIEW, PAUSE or JET while being dragged.
+    // Consume toggling fingers until release. Dragging from a toggle must
+    // never trigger another action or steering.
     if (gToggleFingerHeld && gToggleFingerID == finger->fingerID)
     {
         if (released)
             gToggleFingerHeld = false;
         return;
     }
+    if (gModeFingerHeld && gModeFingerID == finger->fingerID)
+    {
+        if (released)
+            gModeFingerHeld = false;
+        return;
+    }
 
     if (slot < 0 && !released)
     {
+        const float modeDx = (finger->x - gModeCenterX) / gModeRadiusX;
+        const float modeDy = (finger->y - gModeCenterY) / gModeRadiusY;
+        if (modeDx*modeDx + modeDy*modeDy <= 1.0f)
+        {
+            gAndroidUseDpad = !gAndroidUseDpad;
+            gModeFingerHeld = true;
+            gModeFingerID = finger->fingerID;
+            gSteeringFingerActive = false;
+            gSmoothYaw = gSmoothPitch = 0.0f;
+            gLastSteerTick = 0;
+            // Discard old finger presses so changing modes never sticks input.
+            SDL_memset(gTouches, 0, sizeof(gTouches));
+            SDL_Log("Nanosaur Android controls: direction mode %s",
+                    gAndroidUseDpad ? "arrows" : "joystick");
+            return;
+        }
         const float dx = (finger->x - gToggleCenterX) / gToggleRadiusX;
         const float dy = (finger->y - gToggleCenterY) / gToggleRadiusY;
         if (dx*dx + dy*dy <= 1.0f)
@@ -117,7 +144,7 @@ void NanosaurAndroidTouchEvent(const SDL_TouchFingerEvent* finger, bool released
 
     // The first lower-right touch claims steering; other fingers may operate
     // action buttons simultaneously without hijacking the joystick.
-    if (!released && !gSteeringFingerActive && finger->x > .51f && finger->y > .30f)
+    if (!gAndroidUseDpad && !released && !gSteeringFingerActive && finger->x > .51f && finger->y > .30f)
     {
         gSteeringFinger = finger->fingerID;
         gSteeringFingerActive = true;
@@ -149,7 +176,7 @@ void NanosaurAndroidTouchTick(void)
 
     float targetYaw = 0.0f;
     float targetPitch = 0.0f;
-    if (gSteeringFingerActive)
+    if (!gAndroidUseDpad && gSteeringFingerActive)
     {
         for (int i = 0; i < MAX_ANDROID_TOUCH_FINGERS; ++i)
             if (gTouches[i].active && gTouches[i].id == gSteeringFinger)
@@ -189,19 +216,64 @@ static const struct AndroidActionButton {
     // Clear bottom row for frequent two-thumb actions; compact secondary row.
     {.34f, .82f, .095f, .115f, kNeed_Fire, "FIRE", false},
     {.13f, .82f, .090f, .115f, kNeed_Jetpack, "JET", false},
-    // DROP must remain available immediately when carrying an egg.
-    {.13f, .58f, .080f, .095f, kNeed_Drop, "DROP", false},
-    // PAUSE is always accessible; no need to open MORE first.
-    {.12f, .14f, .078f, .090f, kNeed_UIPause, "PAUSE", false},
-    // These are optional: kept away from main controls and from MORE toggle.
+    // Secondary actions are all hidden until MORE is selected.
+    {.13f, .59f, .080f, .090f, kNeed_Drop, "DROP", true},
+    {.13f, .36f, .080f, .090f, kNeed_UIPause, "PAUSE", true},
     {.34f, .36f, .080f, .090f, kNeed_NextWeapon, "NEXT", true},
-    {.34f, .58f, .080f, .090f, kNeed_CameraMode, "VIEW", true}
+    {.34f, .59f, .080f, .090f, kNeed_CameraMode, "VIEW", true}
 };
+
+// Screen-space D-pad targets (not tied to the floating stick).
+// A second finger can hold another arrow to steer diagonally.
+static const struct AndroidDpadButton {
+    float x, y, radiusX, radiusY;
+    int need;
+    const char* label;
+} gAndroidDpad[] = {
+    {.78f, .48f, .090f, .085f, kNeed_PitchUp, "UP"},
+    {.78f, .86f, .090f, .085f, kNeed_PitchDown, "DN"},
+    {.64f, .67f, .090f, .090f, kNeed_YawLeft, "LEFT"},
+    {.92f, .67f, .075f, .090f, kNeed_YawRight, "RIGHT"}
+};
+
+static float AndroidDpadNeedAnalog(int need)
+{
+    for (int i = 0; i < MAX_ANDROID_TOUCH_FINGERS; ++i)
+    {
+        if (!gTouches[i].active)
+            continue;
+        for (size_t j = 0; j < SDL_arraysize(gAndroidDpad); ++j)
+        {
+            const struct AndroidDpadButton* button = &gAndroidDpad[j];
+            if (button->need != need)
+                continue;
+            const float dx = (gTouches[i].x - button->x) / button->radiusX;
+            const float dy = (gTouches[i].y - button->y) / button->radiusY;
+            if (dx*dx + dy*dy <= 1.0f)
+                return 1.0f;
+        }
+    }
+    return 0.0f;
+}
 
 float NanosaurAndroidTouchNeedAnalog(int need)
 {
     if (!gAndroidGameplayActive || gGamePaused)
         return 0.0f;
+
+    if (gAndroidUseDpad)
+    {
+        switch (need)
+        {
+            case kNeed_YawLeft:
+            case kNeed_YawRight:
+            case kNeed_PitchUp:
+            case kNeed_PitchDown:
+                return AndroidDpadNeedAnalog(need);
+            default:
+                break;
+        }
+    }
 
     switch (need)
     {
@@ -240,6 +312,8 @@ void NanosaurAndroidTouchReset(void)
     gAndroidActionsExpanded = false;
     gToggleFingerHeld = false;
     gToggleFingerID = 0;
+    gModeFingerHeld = false;
+    gModeFingerID = 0;
     gSteeringFingerActive = false;
     gSmoothYaw = gSmoothPitch = 0.0f;
     gLastSteerTick = 0;
@@ -301,29 +375,46 @@ void NanosaurAndroidDrawTouchHUD(void)
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    // Steering pad (lower-right) and thumb indicator.
-    const float padX = gSteeringFingerActive ? gStickCenterX : .77f;
-    const float padY = gSteeringFingerActive ? gStickCenterY : .68f;
-    AndroidHudCircle(padX, padY, .17f, .07f, .12f, .16f, .28f);
-    AndroidHudCircle(padX, padY, .145f, .62f, .87f, .98f, .17f);
-    float thumbX = padX;
-    float thumbY = padY;
-    for (int i = 0; i < MAX_ANDROID_TOUCH_FINGERS; ++i)
-        if (gSteeringFingerActive && gTouches[i].active && gTouches[i].id == gSteeringFinger)
+    // The user only sees the currently chosen direction controller.
+    if (gAndroidUseDpad)
+    {
+        for (size_t i = 0; i < SDL_arraysize(gAndroidDpad); ++i)
         {
-            float dx = (gTouches[i].x - padX) * 0.55f;
-            float dy = gTouches[i].y - padY;
-            const float len = sqrtf(dx*dx + dy*dy);
-            if (len > .12f)
-            {
-                dx *= .12f / len;
-                dy *= .12f / len;
-            }
-            thumbX += dx;
-            thumbY += dy;
-            break;
+            const struct AndroidDpadButton* button = &gAndroidDpad[i];
+            const float pressed = AndroidDpadNeedAnalog(button->need);
+            AndroidHudCircle(button->x, button->y, .060f,
+                             pressed > 0 ? .12f : .05f,
+                             pressed > 0 ? .70f : .27f,
+                             pressed > 0 ? .35f : .45f,
+                             pressed > 0 ? .85f : .52f);
         }
-    AndroidHudCircle(thumbX, thumbY, .045f, .70f, .95f, 1.0f, .75f);
+    }
+    else
+    {
+        // Floating joystick and thumb indicator.
+        const float padX = gSteeringFingerActive ? gStickCenterX : .77f;
+        const float padY = gSteeringFingerActive ? gStickCenterY : .68f;
+        AndroidHudCircle(padX, padY, .17f, .07f, .12f, .16f, .28f);
+        AndroidHudCircle(padX, padY, .145f, .62f, .87f, .98f, .17f);
+        float thumbX = padX;
+        float thumbY = padY;
+        for (int i = 0; i < MAX_ANDROID_TOUCH_FINGERS; ++i)
+            if (gSteeringFingerActive && gTouches[i].active && gTouches[i].id == gSteeringFinger)
+            {
+                float dx = (gTouches[i].x - padX) * 0.55f;
+                float dy = gTouches[i].y - padY;
+                const float len = sqrtf(dx*dx + dy*dy);
+                if (len > .12f)
+                {
+                    dx *= .12f / len;
+                    dy *= .12f / len;
+                }
+                thumbX += dx;
+                thumbY += dy;
+                break;
+            }
+        AndroidHudCircle(thumbX, thumbY, .045f, .70f, .95f, 1.0f, .75f);
+    }
 
     // Render actions from the same hit-target table used by input.
     for (size_t i = 0; i < SDL_arraysize(gAndroidActions); ++i)
@@ -339,8 +430,10 @@ void NanosaurAndroidDrawTouchHUD(void)
                          pressed > 0 ? .70f : .35f);
     }
 
-    // Toggle is always visible even while secondary controls are collapsed.
+    // Separate control-mode toggle (upper right) and action expansion (left).
     AndroidHudCircle(gToggleCenterX, gToggleCenterY, .040f,
+                     .08f, .25f, .38f, .65f);
+    AndroidHudCircle(gModeCenterX, gModeCenterY, .050f,
                      .08f, .25f, .38f, .65f);
 
     // Label glyphs use the original game's atlas/font. Restore our HUD
@@ -362,6 +455,13 @@ void NanosaurAndroidDrawTouchHUD(void)
     }
     AndroidHudLabel(gAndroidActionsExpanded ? "LESS" : "MORE",
                     gToggleCenterX - .025f, gToggleCenterY - .014f);
+    AndroidHudLabel(gAndroidUseDpad ? "STICK" : "ARROWS",
+                    gModeCenterX - .035f, gModeCenterY - .014f);
+    if (gAndroidUseDpad)
+        for (size_t i = 0; i < SDL_arraysize(gAndroidDpad); ++i)
+            AndroidHudLabel(gAndroidDpad[i].label,
+                            gAndroidDpad[i].x - .025f,
+                            gAndroidDpad[i].y - .014f);
 }
 
 #endif

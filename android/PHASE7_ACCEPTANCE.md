@@ -158,3 +158,15 @@ The sequence should include all-eggs completion, exit spawn, player
 entry, level completion, and then a next-level InitLevel (level=1 for
 Desert, level=2 for Swamp). The real screen must also show the
 progression; a log line alone does not certify a complete level.
+
+## Dual touch control acceptance (2026-11-21)
+- [ ] Right top "ARROWS" switches to four direction buttons; "STICK" switches back
+- [ ] Default joystick: up climbs, down dives, left/right turn; release neutral
+- [ ] D-pad: UP/DN/LEFT/RIGHT directions work and are not reversed
+- [ ] D-pad: holding two arrows simultaneously gives diagonal steering
+- [ ] Switching modes while touching controls does not cause stuck input
+- [ ] FIRE and JET remain visible, responsive and usable with either controller
+- [ ] MORE expands DROP, PAUSE, NEXT, VIEW; LESS hides all four
+- [ ] MORE/LESS and mode switches do not inadvertently activate gameplay buttons
+- [ ] Screen cutouts, landscape aspect ratios, 3D scene and HUD remain readable
+- [ ] Pause/resume and Android app background/foreground clear touch input safely

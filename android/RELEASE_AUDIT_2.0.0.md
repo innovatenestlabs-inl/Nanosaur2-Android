@@ -213,3 +213,10 @@ production-ready confirmation even if debug tests pass.
 - **Not verified on hardware**: multiple screen sizes, actual orientation, long press, menu pause, egg collection, effects and three-level playthrough remain mandatory.
 - `main` if created is a code integration branch only; it is **not production or licensing sign-off**. The project still needs the original rights holder's written authorization for public distribution.
 - A test signing keystore was accidentally committed in earlier history. Removing it from the latest tree does not erase Git history. Rotate credentials, purge the leaked file from history and check all clones before considering release signing.
+
+## 2026-11-21 — User-selectable mobile direction controls
+
+- Add a user-selectable right-side **floating joystick** and **UP/DN/LEFT/RIGHT four-button D-pad**. The button at the top right switches modes and displays the alternate option. The current choice stays selected across pause/background touch resets but defaults to joystick on a fresh application launch.
+- In D-pad mode, multiple fingers may press distinct arrows simultaneously for diagonals. Finger movement is evaluated against the button hit targets each frame. Joystick capture is disabled while D-pad is active. Mode-switch fingers are consumed to prevent stuck inputs.
+- Left side is now minimal by default: **FIRE** and **JET** only; **MORE** reveals DROP, PAUSE, NEXT, VIEW. Expand/collapse state clears on gameplay reset.
+- This is an input/UI source change only. Android build, visual legibility, device safe-area layout, multi-touch interactions, and actual player climb/dive still need real-device verification. It does not change the original desktop input and does not convey rights to distribute the game.

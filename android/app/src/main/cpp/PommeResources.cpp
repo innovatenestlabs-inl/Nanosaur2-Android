@@ -18,11 +18,11 @@
 
 namespace
 {
-namespace fs = std::filesystem;
+namespace nativefs = std::filesystem;
 constexpr const char* kManifest = "nanosaur-data-files.txt";
 constexpr const char* kInstalledManifest = ".nanosaur-data-manifest";
 
-std::string ReadDiskText(const fs::path& path)
+std::string ReadDiskText(const nativefs::path& path)
 {
     std::ifstream input(path, std::ios::binary);
     if (!input) return {};
@@ -35,7 +35,7 @@ bool SafeAssetPath(const std::string& path)
         path.front() == '/' || path.find(':') != std::string::npos)
         return false;
 
-    const fs::path parsed(path);
+    const nativefs::path parsed(path);
     if (parsed.is_absolute()) return false;
     for (const auto& part : parsed)
         if (part == ".." || part == ".") return false;
@@ -72,14 +72,14 @@ bool InitializePommeResources()
         return false;
     }
 
-    const fs::path root(internalDir);
-    const fs::path dataRoot = root / "Data";
-    const fs::path installedManifest = root / kInstalledManifest;
+    const nativefs::path root(internalDir);
+    const nativefs::path dataRoot = root / "Data";
+    const nativefs::path installedManifest = root / kInstalledManifest;
 
     try
     {
         if (ReadDiskText(installedManifest) != manifest ||
-            !fs::is_regular_file(dataRoot / "System" / "gamecontrollerdb.txt"))
+            !nativefs::is_regular_file(dataRoot / "System" / "gamecontrollerdb.txt"))
         {
             std::istringstream entries(manifest);
             std::string relative;
@@ -100,9 +100,9 @@ bool InitializePommeResources()
                 if (!bytes)
                     throw std::runtime_error("Missing APK asset: " + packagedPath);
 
-                const fs::path output = dataRoot / relative;
+                const nativefs::path output = dataRoot / relative;
                 std::error_code ec;
-                fs::create_directories(output.parent_path(), ec);
+                nativefs::create_directories(output.parent_path(), ec);
                 if (ec)
                 {
                     SDL_free(bytes);

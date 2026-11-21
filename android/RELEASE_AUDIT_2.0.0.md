@@ -144,3 +144,40 @@ and next-level screens. These tests have not been reported as passing.
 Do **not** create `main` from `android-port` until the relevant
 P0/P1 items are resolved and acceptance evidence is supplied.
 Preserve `master` exactly as the original desktop fork.
+
+## 2026-11-21 — Android phone feedback follow-up
+
+- **APK attribution preflight:** the test failed because `app/build.gradle`
+  referenced `app/NOTICE-ANDROID.txt` rather than
+  `android/NOTICE-ANDROID.txt`. The Gradle Copy input is now
+  `file('../NOTICE-ANDROID.txt')`. The verifier still requires the exact
+  `assets/licenses/NOTICE-ANDROID.txt` APK entry. A new local device
+  build/preflight is required to confirm the fix.
+- **Egg collection verification:** original `MoveEgg_IntoWormhole`
+  calls `EggWasRetrieved` when the egg reaches the last joint or shrinks
+  away. `EggWasRetrieved` increments the saved count and deletes that egg;
+  its Adventure branch unlocks `gOpenPlayerWormhole` once every required
+  color reaches its quota. The original exit spawning, capture, fade and
+  next-level functions remain intact. This supports the algorithm but
+  does not prove real-device completion of all three stages.
+- **Lives indicator:** `Infobar_DrawLives` already renders one life
+  sprite per free life. Android additionally renders `LIVES: N` to help
+  players understand remaining lives on small screens. Confirm on
+  device that it doesn't overlap controls or crop with display cutouts.
+- **Multiplayer trap:** the Android title Play menu now hides the
+  two-controller versus entry because two-player touch HUD support is
+  not implemented. If another path reaches LocalGather without two
+  controllers, Android returns to menu instead of trapping the user.
+  Desktop behavior remains untouched.
+- **Mobile prompts:** Android's ESC-to-go-back string now displays
+  `TAP BACK TO RETURN` and missing controllers prompt is reworded.
+  All actual back affordances require device testing; a translated
+  string alone is not evidence of a usable touch-back button.
+- **Branding:** app label `Nanosaur II: Hatchling`, custom Android vector
+  launcher icon, and existing versionCode 20000/versionName 2.0.0.
+  This branding preserves the original Nanosaur identity and doesn't
+  represent original copyrights as an Innovate Nest Labs creation.
+
+**Decision remains: not Play Store ready.** A signed AAB, rights review,
+actual three-level physical-device progression, save/load, and lifecycle
+performance acceptance are outstanding.

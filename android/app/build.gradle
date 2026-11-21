@@ -7,6 +7,19 @@ if (!new File(sdlRoot, 'CMakeLists.txt').isFile()) {
     throw new GradleException('SDL3 is missing. From the repository root, run: powershell -ExecutionPolicy Bypass -File android/setup-sdl.ps1')
 }
 
+// Package a real, unmodified Nanosaur 2 resource for the next graphics test.
+// Gradle stages the original file at build time; no duplicate asset is committed.
+def originalLevelMap = file('../../Data/Sprites/maps/level1.jpg')
+if (!originalLevelMap.isFile()) {
+    throw new GradleException("Original game asset missing: ${originalLevelMap}")
+}
+def stagePreviewAssets = tasks.register('stageNanosaurPreviewAssets', Copy) {
+    from(originalLevelMap) {
+        into 'Sprites/maps'
+    }
+    into(layout.buildDirectory.dir('generated/nanosaur-assets'))
+}
+
 android {
     namespace 'com.innovatenestlabs.nanosaur2'
     compileSdk 35
@@ -15,8 +28,8 @@ android {
         applicationId 'com.innovatenestlabs.nanosaur2'
         minSdk 23
         targetSdk 35
-        versionCode 1
-        versionName '0.1.0-dev'
+        versionCode 2
+        versionName '0.2.0-dev'
 
         ndk {
             abiFilters 'arm64-v8a'
@@ -42,8 +55,9 @@ android {
 
     sourceSets {
         main {
-            // SDL3's Android integration must match the native SDL3 source version.
+            // SDL3 Java code and C++ library must share the exact SDL3 revision.
             java.srcDir new File(sdlRoot, 'android-project/app/src/main/java')
+            assets.srcDir(stagePreviewAssets)
         }
     }
 }

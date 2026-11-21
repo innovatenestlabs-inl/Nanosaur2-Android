@@ -1,7 +1,7 @@
 /.gradle/
 /build/
 /app/build/
-/SDL/
-/local.properties/
-*.iml
 /app/.cxx/
+/SDL/
+/local.properties
+*.iml

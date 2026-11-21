@@ -1,64 +1,80 @@
-# Nanosaur 2 Android — Milestone 1 bootstrap
+# Nanosaur 2 Android — Original-asset preview (Milestone 2A)
 
-This is a **native SDL3/OpenGL ES smoke test**, not yet a playable Android port.
-The desktop game code, resources, copyrights and `master` branch are unchanged.
+**Purpose:** Validate the original game's resource pipeline before attempting
+the legacy desktop OpenGL renderer. The original game has **not** been ported
+or linked into the APK yet.
 
-## Prerequisites
+## Verified earlier
 
-- Windows 11, Git, Android Studio and Java 17 (Android Studio's bundled JDK is fine)
-- Android SDK Platform 35, SDK Build Tools, NDK and CMake **3.22.1**
-- Android Gradle Plugin 8.7.3 and **Gradle 8.9** (locally installed for first-time wrapper setup)
-- Internet access on the first build to fetch Gradle/Android dependencies and SDL3
+On a physical Android phone, the original SDL3 + OpenGL ES 3.0 native
+bootstrap compiled and displayed a solid teal screen (Milestone 1).
 
-## Fetch SDL3
+## Current change
 
-From the repository root in PowerShell:
+- The Gradle build copies the **original** `Data/Sprites/maps/level1.jpg`
+  into Android APK assets at `Sprites/maps/level1.jpg`.
+- The existing upstream `Source/Headers/stb_image.h` decodes JPEG in memory.
+- The native app uses `SDL_LoadFile` and a minimal GLES3 shader/quad to draw
+  the original map, maintaining its aspect ratio against a teal background.
+- No source asset conversion, duplicate assets, game logic modification or
+  desktop renderer replacement was necessary for this test.
+- This should display a **level map image**, not playable Nanosaur gameplay.
+
+## Setup and build (Windows PowerShell)
+
+From the repository root:
 
 ```powershell
+git checkout android-port
+git pull origin android-port
 powershell -ExecutionPolicy Bypass -File android/setup-sdl.ps1
+cd android
 ```
 
-The script clones SDL3 `release-3.2.8` into ignored `android/SDL` and verifies its commit SHA.
-Do **not** copy the desktop prebuilt SDL3 DLL or framework into the Android project.
-
-## Build
-
-Open the `android` directory in Android Studio and allow Gradle to sync. If Android
-Studio prompts you to configure the Gradle distribution, select **Gradle 8.9**.
-Alternatively, with Gradle 8.9 installed:
+`android/local.properties` is intentionally **not versioned**. A previous
+commit accidentally tracked it. After pulling a commit that untracks it,
+recreate your local file as follows:
 
 ```powershell
-cd android
-gradle wrapper --gradle-version 8.9
+$sdk = "$env:LOCALAPPDATA\Android\Sdk"
+if (!(Test-Path $sdk)) { throw "Android SDK not found: $sdk" }
+"sdk.dir=$($sdk -replace '\\','/')" |
+    Set-Content -Encoding ASCII .\local.properties
 .\gradlew.bat :app:assembleDebug
+adb install -r .\app\build\outputs\apk\debug\app-debug.apk
+adb shell am force-stop com.innovatenestlabs.nanosaur2
+adb shell am start -n com.innovatenestlabs.nanosaur2/.NanosaurActivity
 ```
 
-The Gradle wrapper JAR is not checked in yet; generating a wrapper with Gradle 8.9
-is required for command-line-only bootstrapping.
+When successful, the screen displays an **original Nanosaur level map** rather
+than a plain teal screen. If still teal or crashing, capture Android Logcat.
+Native log markers:
 
-APK: `android/app/build/outputs/apk/debug/app-debug.apk`
+- `Loaded original Nanosaur image`
+- `Nanosaur Android original-asset preview started`
+- `Couldn't open bundled Nanosaur asset`
+- `Original game JPEG decoding failed`
+- `Shader error` or `Shader link error`
 
-Install with `adb install -r app/build/outputs/apk/debug/app-debug.apk`,
-or use Android Studio's Run button on an ARM64 emulator/device supporting GLES 3.0.
+Windows ADB log capture:
 
-## Expected behavior
+```powershell
+adb logcat -c
+adb shell am force-stop com.innovatenestlabs.nanosaur2
+adb shell am start -n com.innovatenestlabs.nanosaur2/.NanosaurActivity
+adb logcat -d -s SDL:V SDL/APP:V AndroidRuntime:E libc:E
+```
 
-A **solid teal landscape screen** confirms Android Java entry, SDL3 JNI,
-OpenGL ES context and basic draw loop. You will **not** see the dinosaur yet.
-If startup fails, collect Android Studio Logcat lines tagged `SDL` or `libc`
-and the full Gradle build output.
+## Next planned milestone
 
-## Next milestone
+Port Pomme's required functionality and replace fixed-function OpenGL
+calls in `Source/3D/OGL_Support.c`, `Source/3D/MetaObjects.c` and
+`Source/3D/Atlas.c` with GLES-compatible rendering. Game asset packaging
+will expand as the rest of the engine becomes functional.
 
-Audit and adapt fixed-function OpenGL calls in `Source/3D/OGL_Support.c`,
-`Source/3D/MetaObjects.c` and `Source/3D/Atlas.c`. Then link the original
-game code, integrate Pomme, map desktop `Data/` into Android asset/file
-access and add accelerometer input. Do not copy all game assets into this smoke
-test unnecessarily; no game asset is used by the bootstrap screen.
-
-## Copyright
+## Licensing
 
 Nanosaur II © Pangea Software; modern port © Iliyas Jorio.
-Upstream project: https://github.com/jorio/Nanosaur2
-Original CC BY-NC-SA 4.0 license is retained in the repository.
-This experimental Android project is for private, noncommercial use.
+Upstream: https://github.com/jorio/Nanosaur2
+Existing CC BY-NC-SA 4.0 licensing and attribution are preserved.
+This experimental Android port is for private, noncommercial evaluation.

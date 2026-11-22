@@ -8,9 +8,9 @@
         "after": "        if (a->secondary) {"
       },
       {
-        "line": 222,
-        "before": "            else",
-        "after": "            else\n        }"
+        "line": 223,
+        "before": "                copy_gl_pointer_noalloc(a->secondary+a->len*4, &glstate->vao->vertexattrib[ATT_SECONDARY], 4, skip, count);\t\t// alpha chanel is always 0 for secondary...",
+        "after": "                copy_gl_pointer_noalloc(a->secondary+a->len*4, &glstate->vao->vertexattrib[ATT_SECONDARY], 4, skip, count);\t\t// alpha chanel is always 0 for secondary...\n        }"
       }
     ],
     "array.c": [
@@ -20,9 +20,9 @@
         "after": "    if(to==GL_FLOAT && from==GL_FLOAT) {"
       },
       {
-        "line": 195,
-        "before": "        else",
-        "after": "        else\n    }"
+        "line": 196,
+        "before": "            return copy_gl_array(src, from, width, stride, to, to_width, skip, count, dst);",
+        "after": "            return copy_gl_array(src, from, width, stride, to, to_width, skip, count, dst);\n    }"
       }
     ],
     "fog.c": [
@@ -208,9 +208,9 @@
         "after": "        if (level>0) {"
       },
       {
-        "line": 1091,
-        "before": "            else if(globals4es.automipmap==2)",
-        "after": "            else if(globals4es.automipmap==2)\n        }"
+        "line": 1092,
+        "before": "                bound->mipmap_need = 1;",
+        "after": "                bound->mipmap_need = 1;\n        }"
       },
       {
         "line": 1575,
@@ -218,9 +218,9 @@
         "after": "        if (level>0) {"
       },
       {
-        "line": 1579,
-        "before": "            else",
-        "after": "            else\n        }"
+        "line": 1580,
+        "before": "                bound->mipmap_need = 1;",
+        "after": "                bound->mipmap_need = 1;\n        }"
       }
     ],
     "fpe_shader.c": [

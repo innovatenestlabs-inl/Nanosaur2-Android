@@ -70,3 +70,13 @@ See official documentation:
 Play Console rejected the previous internal-test bundle because Play automatic protection requires **minSdkVersion >= 24**. The app's minimum API was raised from 23 to 24, with versionCode 20001 and versionName 2.0.1 so it can be submitted as a replacement release. Android 6.0 / API 23 devices will no longer be eligible; compileSdk/targetSdk stay 36. The actual bundle must be rebuilt and signed again; the previous AAB is not fixed by changing Git alone.
 
 To inspect the built AAB, use Android Studio's APK Analyzer or `bundletool dump manifest --bundle <signed.aab> --module base` and verify minSdk 24, targetSdk 36, versionCode 20001 before uploading. Release/rights and real-device checks remain applicable.
+
+## 2026-11-23 — Google Play landscape feature declaration (2.0.6 / 20006)
+
+Play Publishing overview flagged `android.hardware.screen.landscape` as a required hardware feature. This is inferred from `android:screenOrientation="landscape"`. The application's base manifest now explicitly declares:
+
+```xml
+<uses-feature android:name="android.hardware.screen.landscape" android:required="false" />
+```
+
+Keep `android:screenOrientation="landscape"` for the game's actual landscape UI. The optional hardware feature changes Google Play filtering; it does **not** add portrait layouts or guarantee gameplay on devices without usable landscape screen support. Confirm merged manifest and the signed AAB before uploading. Because versionCode 20005 was uploaded previously, rebuild/sign a new AAB at versionCode 20006. The previous 20005 AAB cannot be modified after upload. Verify the Play Console issue disappears on the new release, then test on a landscape phone/tablet before promoting to Closed testing.

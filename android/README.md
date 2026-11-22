@@ -541,3 +541,8 @@ The sequence should include all-eggs completion, exit spawn, player
 entry, level completion, and then a next-level InitLevel (level=1 for
 Desert, level=2 for Swamp). The real screen must also show the
 progression; a log line alone does not certify a complete level.
+
+
+## November 2026 production audit
+
+For the current Android build acceptance status and pinned GL4ES warning-fix instructions, see [PRODUCTION_READINESS_2.0.5.md](PRODUCTION_READINESS_2.0.5.md). The prior historical phase/milestone notes above do not override the current status.

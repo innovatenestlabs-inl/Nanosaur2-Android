@@ -6,8 +6,8 @@
     <application
         android:allowBackup="false"
         android:label="@string/app_name"
-        android:icon="@drawable/ic_nanosaur"
-        android:roundIcon="@drawable/ic_nanosaur"
+        android:icon="@drawable/nanosaur_launcher"
+        android:roundIcon="@drawable/nanosaur_launcher"
         android:theme="@android:style/Theme.Material.Light.NoActionBar"
         android:hardwareAccelerated="true">
         <activity

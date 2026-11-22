@@ -64,3 +64,9 @@ See official documentation:
 - https://developer.android.com/build/building-cmdline
 - https://developer.android.com/guide/practices/page-sizes
 - https://support.google.com/googleplay/android-developer/answer/14151465
+
+## 2026-11-22 — Play automatic protection upload rejection
+
+Play Console rejected the previous internal-test bundle because Play automatic protection requires **minSdkVersion >= 24**. The app's minimum API was raised from 23 to 24, with versionCode 20001 and versionName 2.0.1 so it can be submitted as a replacement release. Android 6.0 / API 23 devices will no longer be eligible; compileSdk/targetSdk stay 36. The actual bundle must be rebuilt and signed again; the previous AAB is not fixed by changing Git alone.
+
+To inspect the built AAB, use Android Studio's APK Analyzer or `bundletool dump manifest --bundle <signed.aab> --module base` and verify minSdk 24, targetSdk 36, versionCode 20001 before uploading. Release/rights and real-device checks remain applicable.

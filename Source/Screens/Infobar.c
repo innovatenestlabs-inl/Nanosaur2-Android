@@ -16,6 +16,9 @@
 /****************************/
 
 static void Infobar_DrawMap(void);
+#ifdef __ANDROID__
+static void Infobar_DrawNearestEggMarker(float uvScale, float visibleRange, float rotation);
+#endif
 static void Infobar_DrawCrosshairs(void);
 static void DrawAnaglyphCrosshairs(ObjNode *theNode);
 static void Infobar_DrawPlayerLabels(void);
@@ -896,6 +899,92 @@ float	sep = scale * DIGIT_WIDTH;
 
 /********************** DRAW MAP *************************/
 
+#ifdef __ANDROID__
+// Show the closest unsaved egg nest on the radar. The marker sticks to the
+// edge when it is beyond the visible map window, giving a direction cue.
+static void Infobar_DrawNearestEggMarker(float uvScale, float visibleRange, float rotation)
+{
+    if (gVSMode != VS_MODE_NONE || !gMasterItemList || visibleRange <= 0.0f)
+        return;
+
+    const OGLPoint3D* player = &gPlayerInfo[gCurrentSplitScreenPane].coord;
+    const TerrainItemEntryType* nearest = NULL;
+    float nearestDistSq = 1.0e30f;
+
+    for (int j = 0; j < gNumTerrainItems; j++)
+    {
+        const TerrainItemEntryType* item = &gMasterItemList[j];
+        // An egg is only saved after passing through the recovery wormhole.
+        if (item->type != MAP_ITEM_EGG || (item->flags & ITEM_FLAGS_USER1))
+            continue;
+        const float dx = item->x - player->x;
+        const float dz = item->y - player->z;
+        const float distSq = dx*dx + dz*dz;
+        if (distSq < nearestDistSq)
+        {
+            nearest = item;
+            nearestDistSq = distSq;
+        }
+    }
+
+    if (!nearest)
+        return;
+
+    const float scale = MAP_SCALE2 * uvScale * gMapToUnitValueFrac / visibleRange;
+    OGLPoint2D offset = {
+        (nearest->x - player->x) * scale,
+        (nearest->y - player->z) * scale
+    };
+    OGLMatrix3x3 rotationMatrix;
+    OGLMatrix3x3_SetRotate(&rotationMatrix, rotation);
+    OGLPoint2D_TransformArray(&offset, &rotationMatrix, &offset, 1);
+
+    // The ring is intentionally smaller than the map mask.
+    const float radialDistance = sqrtf(offset.x*offset.x + offset.y*offset.y);
+    const float radius = MAP_SCALE2 * .70f;
+    const bool outside = radialDistance > radius;
+    if (outside)
+    {
+        offset.x *= radius / radialDistance;
+        offset.y *= radius / radialDistance;
+    }
+
+    const float px = MAP_X + offset.x;
+    const float py = MAP_Y + offset.y;
+    OGL_PushState();
+    SetInfobarSpriteState(INFOBAR_ANAGLYPHZ_Z, 1);
+    OGL_DisableTexture2D();
+    OGL_DisableLighting();
+
+    // High-contrast gold: remaining egg; white outline visible on dark terrain.
+    glColor4f(1.0f, .88f, .16f, 1.0f);
+    glBegin(GL_TRIANGLE_FAN);
+    glVertex2f(px, py);
+    for (int j = 0; j <= 16; j++)
+    {
+        const float angle = (float)j * PI2 / 16.0f;
+        glVertex2f(px + cosf(angle) * (outside ? 4.0f : 3.0f),
+                   py + sinf(angle) * (outside ? 4.0f : 3.0f));
+    }
+    glEnd();
+    glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+    glBegin(GL_LINE_LOOP);
+    for (int j = 0; j < 16; j++)
+    {
+        const float angle = (float)j * PI2 / 16.0f;
+        glVertex2f(px + cosf(angle) * 4.7f,
+                   py + sinf(angle) * 4.7f);
+    }
+    glEnd();
+    OGL_PopState();
+
+    // Tooltip is intentionally short to keep Android's small map readable.
+    Atlas_DrawString(ATLAS_GROUP_FONT1, "GOLD DOT: EGG",
+                     MAP_X, MAP_Y - MAP_SCALE2 - 17.0f, .25f,
+                     kTextMeshSmallCaps);
+}
+#endif
+
 static void Infobar_DrawMap(void)
 {
 float				xoff, yoff;
@@ -903,6 +992,9 @@ OGLPoint2D			p2D[4];
 OGLMatrix3x3		m;
 float				rot, u, v, y;
 float				visibleRange;
+#ifdef __ANDROID__
+float mapUvScale = 0.0f;
+#endif
 double				leftEdge, topEdge;
 
 	if (!gOverheadMapMaterial)
@@ -955,6 +1047,9 @@ double				leftEdge, topEdge;
 
 				leftEdge -= 1175.0;											// offset by the cropped black-space amount
 				u = leftEdge * 0.00011;
+#ifdef __ANDROID__
+                mapUvScale = 0.00011f;
+#endif
 
 				topEdge -= 911.0;											// offset by the cropped black-space amount
 				v = topEdge * 0.00011f;
@@ -966,6 +1061,9 @@ double				leftEdge, topEdge;
 
 				leftEdge -= 527.0;											// offset by the cropped black-space amount
 				u = leftEdge * 0.0001057;
+#ifdef __ANDROID__
+                mapUvScale = 0.0001057f;
+#endif
 
 				topEdge -= 275.0;											// offset by the cropped black-space amount
 				v = topEdge * 0.0001057f;
@@ -976,6 +1074,9 @@ double				leftEdge, topEdge;
 
 				leftEdge -= 496.0;											// offset by the cropped black-space amount
 				u = leftEdge * 0.0001029;
+#ifdef __ANDROID__
+                mapUvScale = 0.0001029f;
+#endif
 
 				topEdge -= 192.0;											// offset by the cropped black-space amount
 				v = topEdge * 0.0001029f;
@@ -1090,7 +1191,10 @@ double				leftEdge, topEdge;
 	OGL_BlendFunc(GL_SRC_ALPHA, GL_ONE);
 	DrawInfobarSprite_Centered(MAP_X, y, MAP_SCALE, INFOBAR_SObjType_MapGlass);
 	OGL_BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
+#ifdef __ANDROID__
+    if (mapUvScale > 0)
+        Infobar_DrawNearestEggMarker(mapUvScale, visibleRange, rot);
+#endif
 }
 
 

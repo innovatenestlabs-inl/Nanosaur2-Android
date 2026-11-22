@@ -1,0 +1,258 @@
+{
+  "revision": "8b1a3da5d2331d0f88b70be25963182d46eed857",
+  "files": {
+    "drawing.c": [
+      {
+        "line": 219,
+        "before": "        if (a->secondary)",
+        "after": "        if (a->secondary) {"
+      },
+      {
+        "line": 222,
+        "before": "            else",
+        "after": "            else\n        }"
+      }
+    ],
+    "array.c": [
+      {
+        "line": 192,
+        "before": "    if(to==GL_FLOAT && from==GL_FLOAT)",
+        "after": "    if(to==GL_FLOAT && from==GL_FLOAT) {"
+      },
+      {
+        "line": 195,
+        "before": "        else",
+        "after": "        else\n    }"
+      }
+    ],
+    "fog.c": [
+      {
+        "line": 13,
+        "before": "    if (glstate->list.active)",
+        "after": "    if (glstate->list.active) {"
+      },
+      {
+        "line": 19,
+        "before": "        else gl4es_flush();",
+        "after": "        else gl4es_flush();\n    }"
+      }
+    ],
+    "gl4es.c": [
+      {
+        "line": 1035,
+        "before": "    if (glstate->list.active)",
+        "after": "    if (glstate->list.active) {"
+      },
+      {
+        "line": 1041,
+        "before": "        else gl4es_flush();",
+        "after": "        else gl4es_flush();\n    }"
+      }
+    ],
+    "light.c": [
+      {
+        "line": 12,
+        "before": "    if(glstate->list.active) ",
+        "after": "    if(glstate->list.active)  {"
+      },
+      {
+        "line": 18,
+        "before": "        } else gl4es_flush();",
+        "after": "        } else gl4es_flush();\n    }"
+      },
+      {
+        "line": 65,
+        "before": "    if(glstate->list.active)",
+        "after": "    if(glstate->list.active) {"
+      },
+      {
+        "line": 78,
+        "before": "        } else gl4es_flush();",
+        "after": "        } else gl4es_flush();\n    }"
+      },
+      {
+        "line": 141,
+        "before": "    if(glstate->list.active)",
+        "after": "    if(glstate->list.active) {"
+      },
+      {
+        "line": 147,
+        "before": "        } else gl4es_flush();",
+        "after": "        } else gl4es_flush();\n    }"
+      },
+      {
+        "line": 253,
+        "before": "    if(glstate->list.active)",
+        "after": "    if(glstate->list.active) {"
+      },
+      {
+        "line": 269,
+        "before": "        }",
+        "after": "        }\n    }"
+      },
+      {
+        "line": 457,
+        "before": "    if(glstate->list.active)",
+        "after": "    if(glstate->list.active) {"
+      },
+      {
+        "line": 464,
+        "before": "        } else gl4es_flush();",
+        "after": "        } else gl4es_flush();\n    }"
+      }
+    ],
+    "raster.c": [
+      {
+        "line": 22,
+        "before": "    if (glstate->list.active)",
+        "after": "    if (glstate->list.active) {"
+      },
+      {
+        "line": 28,
+        "before": "\t} else gl4es_flush();",
+        "after": "\t} else gl4es_flush();\n    }"
+      },
+      {
+        "line": 62,
+        "before": "    if (glstate->list.active)",
+        "after": "    if (glstate->list.active) {"
+      },
+      {
+        "line": 68,
+        "before": "\t\t} else gl4es_flush();",
+        "after": "\t\t} else gl4es_flush();\n    }"
+      },
+      {
+        "line": 171,
+        "before": "    if (glstate->list.active)",
+        "after": "    if (glstate->list.active) {"
+      },
+      {
+        "line": 177,
+        "before": "\t} else gl4es_flush();",
+        "after": "\t} else gl4es_flush();\n    }"
+      },
+      {
+        "line": 185,
+        "before": "    if (glstate->list.active)",
+        "after": "    if (glstate->list.active) {"
+      },
+      {
+        "line": 191,
+        "before": "\t} else gl4es_flush();",
+        "after": "\t} else gl4es_flush();\n    }"
+      }
+    ],
+    "preproc.c": [
+      {
+        "line": 462,
+        "before": "                    if(tok.type!=TK_SPACE)",
+        "after": "                    if(tok.type!=TK_SPACE) {"
+      },
+      {
+        "line": 515,
+        "before": "                    } else status = 399;  // meh?",
+        "after": "                    } else status = 399;  // meh?\n                    }"
+      }
+    ],
+    "pointsprite.c": [
+      {
+        "line": 35,
+        "before": "    if (glstate->list.active)",
+        "after": "    if (glstate->list.active) {"
+      },
+      {
+        "line": 45,
+        "before": "        } else gl4es_flush();",
+        "after": "        } else gl4es_flush();\n    }"
+      }
+    ],
+    "texgen.c": [
+      {
+        "line": 32,
+        "before": "    if (glstate->list.active)",
+        "after": "    if (glstate->list.active) {"
+      },
+      {
+        "line": 38,
+        "before": "        } else gl4es_flush();",
+        "after": "        } else gl4es_flush();\n    }"
+      }
+    ],
+    "stack.c": [
+      {
+        "line": 23,
+        "before": "    if (glstate->list.active)",
+        "after": "    if (glstate->list.active) {"
+      },
+      {
+        "line": 28,
+        "before": "        } else gl4es_flush();",
+        "after": "        } else gl4es_flush();\n    }"
+      },
+      {
+        "line": 369,
+        "before": "    if (glstate->list.active)",
+        "after": "    if (glstate->list.active) {"
+      },
+      {
+        "line": 374,
+        "before": "        } else gl4es_flush();",
+        "after": "        } else gl4es_flush();\n    }"
+      }
+    ],
+    "texture.c": [
+      {
+        "line": 1087,
+        "before": "        if (level>0)",
+        "after": "        if (level>0) {"
+      },
+      {
+        "line": 1091,
+        "before": "            else if(globals4es.automipmap==2)",
+        "after": "            else if(globals4es.automipmap==2)\n        }"
+      },
+      {
+        "line": 1575,
+        "before": "        if (level>0)",
+        "after": "        if (level>0) {"
+      },
+      {
+        "line": 1579,
+        "before": "            else",
+        "after": "            else\n        }"
+      }
+    ],
+    "fpe_shader.c": [
+      {
+        "line": 919,
+        "before": "            if(t && !need->need_texs&(1<<i))",
+        "after": "            if(t && !(need->need_texs & (1<<i)))"
+      }
+    ],
+    "getter.c": [
+      {
+        "line": 972,
+        "before": "            params[0] = glstate->depth.Near*2147483647l;",
+        "after": "            params[0] = glstate->depth.Near*2147483647.0;"
+      },
+      {
+        "line": 973,
+        "before": "            params[1] = glstate->depth.Far*2147483647l;",
+        "after": "            params[1] = glstate->depth.Far*2147483647.0;"
+      }
+    ],
+    "render.c": [
+      {
+        "line": 24,
+        "before": "                glstate->selectbuf.buffer[glstate->selectbuf.pos+1] = (unsigned int)(glstate->selectbuf.zmin * INT_MAX );",
+        "after": "                glstate->selectbuf.buffer[glstate->selectbuf.pos+1] = (unsigned int)(glstate->selectbuf.zmin * 2147483647.0 );"
+      },
+      {
+        "line": 26,
+        "before": "                glstate->selectbuf.buffer[glstate->selectbuf.pos+2] = (unsigned int)(glstate->selectbuf.zmax * INT_MAX );",
+        "after": "                glstate->selectbuf.buffer[glstate->selectbuf.pos+2] = (unsigned int)(glstate->selectbuf.zmax * 2147483647.0 );"
+      }
+    ]
+  }
+}

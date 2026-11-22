@@ -28,4 +28,16 @@ if ($actual -ne $expected) {
 if ($actual -ne $expected) {
     throw "Unexpected GL4ES revision: $actual (expected $expected)."
 }
-Write-Host "GL4ES source ready at pinned commit $actual (renderer not yet enabled)"
+
+# Apply audited GL4ES source corrections, without suppressing compiler diagnostics.
+$python = Get-Command py -ErrorAction SilentlyContinue
+if ($python) {
+    & py -3 (Join-Path $root "tools/fix_gl4es_warnings.py")
+} else {
+    $python = Get-Command python -ErrorAction SilentlyContinue
+    if (-not $python) { throw "Python 3 is required to apply pinned GL4ES source fixes." }
+    & python (Join-Path $root "tools/fix_gl4es_warnings.py")
+}
+if ($LASTEXITCODE -ne 0) { throw "Pinned GL4ES warning corrections failed" }
+
+Write-Host "GL4ES source ready at pinned commit $actual (warnings corrected; renderer unchanged)"

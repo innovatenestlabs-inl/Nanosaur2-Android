@@ -16,6 +16,9 @@ void DrawLoading(float percent);
 		/* MAIN MENU */
 
 void DoMainMenuScreen(void);
+#ifdef __ANDROID__
+Boolean DoAndroidEndGameMenu(Boolean victory);
+#endif
 ObjNode* MakeMouseCursorObject(void);
 
 void BuildMainMenuObjects(void);

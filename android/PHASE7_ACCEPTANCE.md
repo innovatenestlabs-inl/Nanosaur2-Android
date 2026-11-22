@@ -193,3 +193,14 @@ progression; a log line alone does not certify a complete level.
 - [ ] QuickPlay ending returns to menu rather than closing Activity
 - [ ] Remaining egg radar marker correctly indicates the nearest unsaved nest
 - [ ] App update retains on-device checkpoint
+
+## Android v2.0.3 — end-game retry menu acceptance
+- [ ] Lose all lives in Forest: MISSION FAILED appears, with RETRY LEVEL and MAIN MENU
+- [ ] Tap RETRY LEVEL: Forest restarts without closing the Android Activity
+- [ ] Tap MAIN MENU: the normal menu appears, without crashing
+- [ ] Retry Desert and Swamp: return to the same level, do not advance a level
+- [ ] Previously unlocked auto-save FileJ is not overwritten by retry
+- [ ] Finish Swamp: winning slideshow then ADVENTURE COMPLETE with PLAY LEVEL AGAIN / MAIN MENU
+- [ ] Tap PLAY LEVEL AGAIN: Swamp restarts cleanly; tap MAIN MENU: regular menu
+- [ ] Repeat retry several times to detect graphics, sound and input resource leaks
+- [ ] Collect logcat if Android Activity still closes, since native fatal errors bypass the normal end screen

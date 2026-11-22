@@ -191,6 +191,9 @@ static void PlayGame_Adventure(void)
 
 	for (;gLevelNum <= LEVEL_NUM_ADVENTURE3; gLevelNum++)
 	{
+#ifdef __ANDROID__
+retry_current_level:
+#endif
 				/* DO LEVEL INTRO */
 
 		PlaySong(gLevelSongs[gLevelNum], true);
@@ -245,6 +248,18 @@ static void PlayGame_Adventure(void)
 
 		if (gGameOver)									// bail out if game has ended
 		{
+#ifdef __ANDROID__
+            if (DoAndroidEndGameMenu(false))
+            {
+                // Start a fresh attempt of the SAME level; never erase the
+                // separately saved highest unlocked Adventure checkpoint.
+                InitPlayerInfo_Game();
+                gGameOver = false;
+                gSkipLevelIntro = true;
+                gPlayingFromSavedGame = false;
+                goto retry_current_level;
+            }
+#endif
 			break;
 		}
 
@@ -271,7 +286,20 @@ static void PlayGame_Adventure(void)
 		/* DO END-LEVEL BONUS SCREEN */
 
 		if (gLevelNum == LEVEL_NUM_ADVENTURE3)				// if just won game then do win screen first!
-			DoWinScreen();
+        {
+            DoWinScreen();
+#ifdef __ANDROID__
+            if (DoAndroidEndGameMenu(true))
+            {
+                // Replay the final level; keep the victory/other saved
+                // checkpoints intact. Reinitialize player resources.
+                InitPlayerInfo_Game();
+                gSkipLevelIntro = true;
+                gPlayingFromSavedGame = false;
+                goto retry_current_level;
+            }
+#endif
+        }
 
 	}
 

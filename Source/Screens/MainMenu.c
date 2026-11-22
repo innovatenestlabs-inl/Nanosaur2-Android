@@ -35,6 +35,27 @@ static void DeleteFileSlot(void);
 
 // This menu tree MUST NOT BE CONST because CheckForLevelCheat needs to change
 // a specific MenuItem's .next on the fly!
+#ifdef __ANDROID__
+// Native game menu, not a modal Android OS dialog, so touch works as usual.
+static MenuItem gAndroidFailureMenu[] =
+{
+    {.id='root'},
+    {kMILabel, .rawText="MISSION FAILED"},
+    {kMIPick, .rawText="RETRY LEVEL", .id='rtry', .next='EXIT'},
+    {kMIPick, .rawText="MAIN MENU", .id='back', .next='EXIT'},
+    {.id=0},
+};
+
+static MenuItem gAndroidVictoryMenu[] =
+{
+    {.id='root'},
+    {kMILabel, .rawText="ADVENTURE COMPLETE"},
+    {kMIPick, .rawText="PLAY LEVEL AGAIN", .id='rtry', .next='EXIT'},
+    {kMIPick, .rawText="MAIN MENU", .id='back', .next='EXIT'},
+    {.id=0},
+};
+#endif
+
 static MenuItem gMainMenuTree[] =
 {
 	{ .id='root' },
@@ -207,6 +228,39 @@ void DoMainMenuScreen(void)
 		ProcessMenuOutcome(gMenuOutcome);
 	}
 }
+
+#ifdef __ANDROID__
+// Shown only after level resources have been safely released. Both actions
+// are explicit: retry the same level or return to the normal main menu.
+Boolean DoAndroidEndGameMenu(Boolean victory)
+{
+    MenuItem* entries = victory ? gAndroidVictoryMenu : gAndroidFailureMenu;
+
+    MyFlushEvents();
+    SetupMainMenuScreen();
+    PlaySong(SONG_THEME, true);
+
+    MenuStyle style = kDefaultMenuStyle;
+    style.yOffset = 302.5f;
+    MakeMenu(entries, &style);
+
+    while (gMenuOutcome == 0)
+    {
+        DoSDLMaintenance();
+        CalcFramesPerSecond();
+        MoveMainMenu();
+        OGL_DrawScene(DrawObjects);
+    }
+
+    const Boolean retry = gMenuOutcome == 'rtry';
+    SDL_Log("Nanosaur Android end screen: %s; selected %s",
+            victory ? "victory" : "game over", retry ? "retry" : "main menu");
+    OGL_FadeOutScene(DrawObjects, NULL);
+    FreeMainMenuScreen();
+    MyFlushEvents();
+    return retry;
+}
+#endif
 
 /********************* BUILD MAIN MENU OBJECTS **********************/
 //

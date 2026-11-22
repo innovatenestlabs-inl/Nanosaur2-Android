@@ -204,3 +204,19 @@ progression; a log line alone does not certify a complete level.
 - [ ] Tap PLAY LEVEL AGAIN: Swamp restarts cleanly; tap MAIN MENU: regular menu
 - [ ] Repeat retry several times to detect graphics, sound and input resource leaks
 - [ ] Collect logcat if Android Activity still closes, since native fatal errors bypass the normal end screen
+
+## Android v2.0.4 — level-boundary checkpoints and unlocked-level replay
+
+- [ ] Start Forest, rescue 10 eggs but do NOT complete the objective, force-stop from recent apps, reopen → Forest starts with 0 saved eggs (original level inventory restored)
+- [ ] Continue option hidden for fresh install; choose unlocked level shows only Forest
+- [ ] Complete Forest/enter exit wormhole → FileJ checkpoint unlocks Desert
+- [ ] Force-stop while partially playing Desert → Continue restarts Desert with 0 collected eggs
+- [ ] Choose unlocked level shows Forest and Desert; Swamp remains hidden
+- [ ] Replay Forest from the menu → full Forest egg collection starts fresh, Desert unlock is retained
+- [ ] Complete Desert → Swamp becomes available; replaying Desert must not downgrade Swamp
+- [ ] Continue after finishing Desert → starts Swamp with a clean egg inventory
+- [ ] Android transition between levels does not offer original manual Save Game prompt
+- [ ] Existing valid FileJ saves created by v2.0.2/2.0.3 are read without migration
+- [ ] Run tests with upgrade install (not uninstall), verify progress survives app restart
+- [ ] Lose the level and tap Retry → same level begins again with zero delivered eggs
+- [ ] Desktop save screens and manual save slots remain unchanged

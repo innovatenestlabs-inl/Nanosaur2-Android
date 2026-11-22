@@ -140,6 +140,10 @@ OSErr SavePrefs(void);
 void LoadPlayfield(FSSpec *specPtr);
 
 Boolean SaveGame(int fileSlot);
+#ifdef __ANDROID__
+// FileJ (slot 9) stores the highest unlocked Adventure level, never live egg counts.
+short GetAndroidHighestUnlockedAdventureLevel(void);
+#endif
 Boolean LoadSavedGame(int fileSlot, SaveGameType* outData);
 Boolean DeleteSavedGame(int fileSlot);
 void UseSaveGame(const SaveGameType* saveData);

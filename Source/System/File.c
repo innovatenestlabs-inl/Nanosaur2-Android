@@ -1232,6 +1232,22 @@ Boolean SaveGame(int fileSlot)
 }
 
 
+#ifdef __ANDROID__
+// Return the highest level the player may start; an invalid/missing checkpoint
+// always means Forest. The on-disk SaveGameType format is intentionally unchanged.
+short GetAndroidHighestUnlockedAdventureLevel(void)
+{
+    SaveGameType progress = {0};
+    if (LoadSavedGame(9, &progress)
+        && progress.level >= LEVEL_NUM_ADVENTURE1
+        && progress.level <= LEVEL_NUM_ADVENTURE3)
+    {
+        return progress.level;
+    }
+    return LEVEL_NUM_ADVENTURE1;
+}
+#endif
+
 /***************************** LOAD SAVED GAME ********************************/
 
 Boolean LoadSavedGame(int fileSlot, SaveGameType* outData)

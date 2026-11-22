@@ -56,6 +56,20 @@ static MenuItem gAndroidVictoryMenu[] =
 };
 #endif
 
+#ifdef __ANDROID__
+static int ShowAndroidUnlockedAdventureLevel(const MenuItem* item)
+{
+    const short highest = GetAndroidHighestUnlockedAdventureLevel();
+    if (item->id == 'cont')
+        return highest > LEVEL_NUM_ADVENTURE1 ? 0 : kMILayoutFlagHidden;
+    if (item->id == 'rpl2')
+        return highest >= LEVEL_NUM_ADVENTURE2 ? 0 : kMILayoutFlagHidden;
+    if (item->id == 'rpl3')
+        return highest >= LEVEL_NUM_ADVENTURE3 ? 0 : kMILayoutFlagHidden;
+    return 0;
+}
+#endif
+
 static MenuItem gMainMenuTree[] =
 {
 	{ .id='root' },
@@ -67,7 +81,8 @@ static MenuItem gMainMenuTree[] =
 	{ .id='play' },
 	{kMIPick, STR_ADVENTURE,	.next='EXIT', .id='adve', .callback=CheckForLevelCheat},
 #ifdef __ANDROID__
-    {kMIPick, .rawText="CONTINUE ADVENTURE", .id='cont', .next='EXIT'},
+    {kMIPick, .rawText="CONTINUE ADVENTURE", .id='cont', .next='EXIT', .getLayoutFlags=ShowAndroidUnlockedAdventureLevel},
+    {kMIPick, .rawText="CHOOSE UNLOCKED LEVEL", .next='repl'},
     {kMIPick, .rawText="LEVEL GUIDE", .next='guid'},
 #endif
 #ifndef __ANDROID__
@@ -82,6 +97,13 @@ static MenuItem gMainMenuTree[] =
 #ifdef __ANDROID__
     // Informational level list, NOT a cheat menu. Play Adventure to progress
     // sequentially, or load completed progress from existing save slots.
+    { .id='repl' },
+    {kMILabel, .rawText="REPLAY FROM THE BEGINNING OF A LEVEL"},
+    {kMIPick, .rawText="LEVEL 1: FOREST", .id='rpl1', .next='EXIT'},
+    {kMIPick, .rawText="LEVEL 2: DESERT", .id='rpl2', .next='EXIT', .getLayoutFlags=ShowAndroidUnlockedAdventureLevel},
+    {kMIPick, .rawText="LEVEL 3: SWAMP", .id='rpl3', .next='EXIT', .getLayoutFlags=ShowAndroidUnlockedAdventureLevel},
+    {kMIPick, STR_BACK_SYMBOL, .next='BACK'},
+
     { .id='guid' },
     {kMILabel, .rawText="ADVENTURE: 3 LEVELS"},
     {kMILabel, .rawText="1 / 3  FOREST"},
@@ -425,22 +447,35 @@ static void ProcessMenuOutcome(int outcome)
 
 #ifdef __ANDROID__
         case 'cont':
+        case 'rpl1':
+        case 'rpl2':
+        case 'rpl3':
         {
-            SaveGameType progress = {0};
-            if (LoadSavedGame(9, &progress)
-                && progress.level >= LEVEL_NUM_ADVENTURE2
-                && progress.level <= LEVEL_NUM_ADVENTURE3)
+            const short highest = GetAndroidHighestUnlockedAdventureLevel();
+            short requested = highest;
+            if (outcome == 'rpl1') requested = LEVEL_NUM_ADVENTURE1;
+            if (outcome == 'rpl2') requested = LEVEL_NUM_ADVENTURE2;
+            if (outcome == 'rpl3') requested = LEVEL_NUM_ADVENTURE3;
+
+            // Never allow a replay selection to bypass an incomplete level.
+            // An interrupted attempt resumes at that level's beginning,
+            // with fresh eggs and player resources.
+            if (requested < LEVEL_NUM_ADVENTURE1 || requested > highest)
             {
-                SetMainController1P();
-                UseSaveGame(&progress);
-                gNumPlayers = 1;
-                gVSMode = VS_MODE_NONE;
-                gPlayingFromSavedGame = true;
-                gPlayNow = true;
-                SDL_Log("Nanosaur Android progress: continue level %d", progress.level + 1);
+                SDL_Log("Nanosaur Android progress: refused locked level %d (highest=%d)",
+                        requested + 1, highest + 1);
+                break;
             }
-            else
-                SDL_Log("Nanosaur Android progress: continue without saved checkpoint");
+
+            SetMainController1P();
+            gVSMode = VS_MODE_NONE;
+            gNumPlayers = 1;
+            gLevelNum = requested;
+            gSkipLevelIntro = true;
+            gPlayingFromSavedGame = false;
+            gPlayNow = true;
+            SDL_Log("Nanosaur Android progress: starting level %d cleanly, unlocked through %d",
+                    requested + 1, highest + 1);
             break;
         }
 #endif

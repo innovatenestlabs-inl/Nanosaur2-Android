@@ -200,10 +200,16 @@ retry_current_level:
 
 		if (!gSkipLevelIntro)
 		{
+#ifdef __ANDROID__
+            // Level completion is now saved automatically to FileJ. Keep the
+            // transition cinematic, but never ask mobile users to save manually.
+            DoLevelIntroScreen(INTRO_MODE_NOSAVE);
+#else
 			if ((gLevelNum == 0) || gPlayingFromSavedGame)
 				DoLevelIntroScreen(INTRO_MODE_NOSAVE);
 			else
 				DoLevelIntroScreen(INTRO_MODE_SAVEGAME);
+#endif
 		}
 		gSkipLevelIntro = false;			// reset skip flag
 
@@ -269,10 +275,9 @@ retry_current_level:
         // FileJ (slot 9) is reserved for Android auto-progress.
         if (gLevelCompleted && gVSMode == VS_MODE_NONE && gLevelNum < LEVEL_NUM_ADVENTURE3)
         {
-            SaveGameType previous = {0};
             const short completed = gLevelNum;
             const short next = completed + 1;
-            if (!LoadSavedGame(9, &previous) || previous.level < next)
+            if (GetAndroidHighestUnlockedAdventureLevel() < next)
             {
                 gLevelNum = next;
                 const Boolean saved = SaveGame(9);

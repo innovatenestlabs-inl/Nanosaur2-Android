@@ -163,8 +163,12 @@ static void FreeWinScreen(void)
 	FreeAllSkeletonFiles(-1);
 	DisposeSpriteGroup(SPRITE_GROUP_LEVELSPECIFIC);
 	DisposeAllBG3DContainers();
+#ifndef __ANDROID__
 	DisposeTerrain();
-
+#else
+    // Terrain has already been disposed by Adventure's CleanupLevel().
+    SDL_Log("Nanosaur Android victory: win screen cleanup completed");
+#endif
 	OGL_DisposeGameView();
 }
 

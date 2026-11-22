@@ -183,3 +183,13 @@ progression; a log line alone does not certify a complete level.
 - [ ] A new Android Adventure starts with 7 spare lives, shield/fuel preserved
 - [ ] Android Adventure receives 75% of normal damage; saved games retain their own life counts
 - [ ] Egg delivery, exit wormhole, all three levels, audio and saves still work
+
+## 2026-11-23 Android progression and victory regression checks
+- [ ] Complete Forest; restart app; CONTINUE ADVENTURE opens Desert
+- [ ] Complete Desert; restart app; CONTINUE ADVENTURE opens Swamp
+- [ ] Replaying Forest does not overwrite a higher unlocked-level checkpoint
+- [ ] No checkpoint → CONTINUE safely stays in the menu
+- [ ] End of Swamp → victory and menu, no shutdown
+- [ ] QuickPlay ending returns to menu rather than closing Activity
+- [ ] Remaining egg radar marker correctly indicates the nearest unsaved nest
+- [ ] App update retains on-device checkpoint

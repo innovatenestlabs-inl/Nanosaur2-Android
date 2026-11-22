@@ -46,6 +46,7 @@ static MenuItem gMainMenuTree[] =
 	{ .id='play' },
 	{kMIPick, STR_ADVENTURE,	.next='EXIT', .id='adve', .callback=CheckForLevelCheat},
 #ifdef __ANDROID__
+    {kMIPick, .rawText="CONTINUE ADVENTURE", .id='cont', .next='EXIT'},
     {kMIPick, .rawText="LEVEL GUIDE", .next='guid'},
 #endif
 #ifndef __ANDROID__
@@ -368,6 +369,27 @@ static void ProcessMenuOutcome(int outcome)
 			gLevelNum = LEVEL_NUM_ADVENTURE1;
 			break;
 
+#ifdef __ANDROID__
+        case 'cont':
+        {
+            SaveGameType progress = {0};
+            if (LoadSavedGame(9, &progress)
+                && progress.level >= LEVEL_NUM_ADVENTURE2
+                && progress.level <= LEVEL_NUM_ADVENTURE3)
+            {
+                SetMainController1P();
+                UseSaveGame(&progress);
+                gNumPlayers = 1;
+                gVSMode = VS_MODE_NONE;
+                gPlayingFromSavedGame = true;
+                gPlayNow = true;
+                SDL_Log("Nanosaur Android progress: continue level %d", progress.level + 1);
+            }
+            else
+                SDL_Log("Nanosaur Android progress: continue without saved checkpoint");
+            break;
+        }
+#endif
 		case	'cht1':
 		case	'cht2':
 		case	'cht3':

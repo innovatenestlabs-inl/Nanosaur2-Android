@@ -249,6 +249,25 @@ static void PlayGame_Adventure(void)
 		}
 
 
+#ifdef __ANDROID__
+        // Automatically checkpoint the NEXT level after completion.
+        // FileJ (slot 9) is reserved for Android auto-progress.
+        if (gLevelCompleted && gVSMode == VS_MODE_NONE && gLevelNum < LEVEL_NUM_ADVENTURE3)
+        {
+            SaveGameType previous = {0};
+            const short completed = gLevelNum;
+            const short next = completed + 1;
+            if (!LoadSavedGame(9, &previous) || previous.level < next)
+            {
+                gLevelNum = next;
+                const Boolean saved = SaveGame(9);
+                gLevelNum = completed;
+                SDL_Log("Nanosaur Android progress: level %d auto-save %s",
+                        next + 1, saved ? "OK" : "FAILED");
+            }
+        }
+#endif
+
 		/* DO END-LEVEL BONUS SCREEN */
 
 		if (gLevelNum == LEVEL_NUM_ADVENTURE3)				// if just won game then do win screen first!
@@ -1118,7 +1137,7 @@ unsigned long	someLong;
     SDL_Log("Nanosaur Android QUICKPLAY: starting Adventure Level 1");
     PlayGame_Adventure();
     SDL_Log("Nanosaur Android QUICKPLAY: Adventure returned");
-    return;
+    goto android_main_menu;
 #endif
 
 
@@ -1155,6 +1174,9 @@ unsigned long	someLong;
 		/* MAIN LOOP */
 		/*************/
 
+#ifdef __ANDROID__
+android_main_menu:
+#endif
 	while(true)
 	{
 		gTimeDemo = false;
